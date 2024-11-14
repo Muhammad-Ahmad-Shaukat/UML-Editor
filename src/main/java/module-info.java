@@ -9,6 +9,7 @@ module com.boota.javaproject {
     requires org.kordamp.ikonli.javafx;
     requires org.kordamp.bootstrapfx.core;
     requires eu.hansolo.tilesfx;
+    requires javafx.swing;
 
     opens com.boota.javaproject to javafx.fxml;
     exports com.boota.javaproject;
