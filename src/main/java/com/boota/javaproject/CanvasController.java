@@ -6,23 +6,29 @@ import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.control.*;
 import javafx.scene.control.Button;
-import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiConsumer;
 
+
 public class CanvasController {
+
+    private Point initialPoint;
+    private Point finalPoint;
 
     @FXML
     private Pane canvasPane;
@@ -44,28 +50,50 @@ public class CanvasController {
 
         drawActions.put("Class", this::drawClass);
         drawActions.put("Comment", this::drawComment);
-        drawActions.put("Association", this::drawAssociation);
 
         canvasPane.setOnMouseMoved(this::trackMouseCoordinates);
         canvasPane.setOnMouseClicked(this::handleCanvasClick);
     }
 
-    public void handleClassButtonClick() {
-        activeTool = "Class";
+
+    public void handleClassButtonClick() {activeTool = "Class";}
+
+    public void handleAssociationButtonClick() {activeTool = "Association";}
+
+    public void handleCommentButtonClick() {activeTool = "Comment";}
+
+    private void trackMouseCoordinates(MouseEvent event) {
+        double x = event.getX();
+        double y = event.getY();
     }
 
-    public void handleCommentButton() {
-        activeTool = "Association";
+
+    private void handleCanvasClick(MouseEvent event) {
+        double x = event.getX();
+        double y = event.getY();
+
+        if (event.getClickCount() == 2) {
+            handleDoubleClick(x, y);
+        }
+        else if (activeTool != null) {
+            BiConsumer<Double, Double> drawAction = drawActions.get(activeTool);
+            if (drawAction != null) {
+                drawAction.accept(x, y);
+            }
+        }
     }
 
-    public void handleCommentButtonClick() {
-        activeTool = "Comment";
+    private void handleDoubleClick(double x, double y) {
+        for (Map.Entry<Node, Object> entry : elementMap.entrySet()) {
+            Node node = entry.getKey();
+            if (isWithinBounds(node, x, y)) {
+                Object element = entry.getValue();
+                showElementOptions(element);
+                return;
+            }
+        }
     }
 
-    private void drawAssociation(double x, double y) {
-        activeTool = null;
-        Point initialPoint = new Point(x, y);
-    }
 
     private void drawClass(double x, double y) {
         activeTool = null;
@@ -117,37 +145,6 @@ public class CanvasController {
         elementMap.put(classBox, myClass); // Track element for double-click detection
     }
 
-
-    private void trackMouseCoordinates(MouseEvent event) {
-        double x = event.getX();
-        double y = event.getY();
-    }
-
-    private void handleCanvasClick(MouseEvent event) {
-        double x = event.getX();
-        double y = event.getY();
-
-        if (event.getClickCount() == 2) {
-            handleDoubleClick(x, y);
-        }
-        else if (activeTool != null) {
-            BiConsumer<Double, Double> drawAction = drawActions.get(activeTool);
-            if (drawAction != null) {
-                drawAction.accept(x, y);
-            }
-        }
-    }
-
-    private void handleDoubleClick(double x, double y) {
-        for (Map.Entry<Node, Object> entry : elementMap.entrySet()) {
-            Node node = entry.getKey();
-            if (isWithinBounds(node, x, y)) {
-                Object element = entry.getValue();
-                showElementOptions(element);
-                return;
-            }
-        }
-    }
 
     private boolean isWithinBounds(Node node, double x, double y) {
         return x >= node.getLayoutX() && x <= node.getLayoutX() + node.getBoundsInParent().getWidth() &&

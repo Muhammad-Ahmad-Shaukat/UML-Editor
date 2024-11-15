@@ -14,7 +14,7 @@
             <Button text="Class" onAction="#handleClassButtonClick"/>
             <Button text="Comment" onAction="#handleCommentButtonClick"/>
             <Button text="Snap Diagram" onAction="#snapCanvas"/>
-<!--            <Button text="Association" onAction="#handleAssociationButtonClick"/>-->
+            <Button text="Association" onAction="#handleAssociationButtonClick"/>
         </HBox>
     </top>
 
