@@ -10,12 +10,8 @@ public class Association {
     Class initialClass;
     Class finalClass;
 
-
-    public Association(Point start, Point end, Class initialClass, Class finalClass) {
         this.start = start;
         this.end = end;
-        this.initialClass = initialClass;
-        this.finalClass = finalClass;
     }
 
     public Association(Point start, Point end, Multiplicity startMultiplicity,

@@ -53,7 +53,7 @@ public class CanvasController {
 
         canvasPane.setOnMouseMoved(this::trackMouseCoordinates);
         canvasPane.setOnMouseClicked(this::handleCanvasClick);
-    }
+            }
 
 
     public void handleClassButtonClick() {activeTool = "Class";}
@@ -80,7 +80,7 @@ public class CanvasController {
             if (drawAction != null) {
                 drawAction.accept(x, y);
             }
-        }
+       }
     }
 
     private void handleDoubleClick(double x, double y) {
@@ -152,50 +152,16 @@ public class CanvasController {
     }
 
     private void showElementOptions(Object element) {
-        Stage optionsStage = new Stage();
-        VBox optionBox = new VBox();
-
-        // Apply CSS class to optionBox
-        optionBox.getStyleClass().add("option-box");
 
         if (element instanceof Class) {
             Class clazz = (Class) element;
-            optionBox.setPadding(new Insets(10));
 
-            Button dragButton = new Button("Drag");
-            Button editButton = new Button("Edit");
-            Button deleteButton = new Button("Delete");
-
-            // Apply CSS class to buttons
-            dragButton.getStyleClass().add("option-button");
-            editButton.getStyleClass().add("option-button");
-            deleteButton.getStyleClass().add("option-button");
-
-            editButton.setOnAction(event -> {
                 showClassDetails(clazz);
-                optionsStage.close();
-            });
-            deleteButton.setOnAction(event -> {
-                classes.remove(clazz);
-                elementMap.remove(clazz);
-                redrawcanvas();
-                optionsStage.close();
-            });
-            dragButton.setOnAction(event -> {
-                optionsStage.close();
-            });
 
-            optionBox.getChildren().addAll(dragButton, editButton, deleteButton);
 
-            Scene scene = new Scene(optionBox);
-            scene.getStylesheets().add(getClass().getResource("/com/boota/javaproject/styles.css").toExternalForm());
 
-            optionsStage.setScene(scene);
-            optionsStage.initStyle(StageStyle.TRANSPARENT); // Make the stage background transparent
-            optionsStage.show();
         }
     }
-
 
     private void showClassDetails(Object element) {
         Stage detailStage = new Stage();
@@ -203,7 +169,6 @@ public class CanvasController {
 
         if (element instanceof Class) {
             Class clazz = (Class) element;
-            detailBox.setPadding(new Insets(10));
 
             // Class Name Editing
             detailBox.getChildren().add(new Label("Class Name:"));
@@ -244,11 +209,8 @@ public class CanvasController {
             });
             detailBox.getChildren().add(submitButton);
         }
-        // Additional checks for other element types can be added here
 
-        Scene scene = new Scene(detailBox, 300, 200);
         detailStage.setScene(scene);
-        detailStage.setTitle("Selected Class");
         detailStage.show();
     }
 
@@ -373,7 +335,6 @@ public class CanvasController {
     private void redrawClass(Class claz) {
         Point initialPoint = new Point(claz.getInitialPoint().getX(), claz.getInitialPoint().getY());
         double initialWidth = 120;
-        claz.setClassName("changed class");
         VBox classBox = new VBox();
         classBox.setLayoutX(initialPoint.getX());
         classBox.setLayoutY(initialPoint.getY());
