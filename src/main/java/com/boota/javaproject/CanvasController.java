@@ -9,16 +9,14 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.*;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
 import javafx.stage.Stage;
-import javafx.stage.StageStyle;
 
-import java.awt.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -37,6 +35,7 @@ public class CanvasController {
     private GraphicsContext gc;
     private ArrayList<Class> classes = new ArrayList<>();
     private ArrayList<Association> associations = new ArrayList<>();
+    private VBox selectedClassBox = null;
 
     private String activeTool = null;
     private Map<String, BiConsumer<Double, Double>> drawActions = new HashMap<>();
@@ -53,7 +52,36 @@ public class CanvasController {
 
         canvasPane.setOnMouseMoved(this::trackMouseCoordinates);
         canvasPane.setOnMouseClicked(this::handleCanvasClick);
+        canvasPane.sceneProperty().addListener((observable, oldScene, newScene) -> {
+            if (newScene != null) {
+                newScene.setOnKeyPressed(event -> {
+                    if (event.getCode() == javafx.scene.input.KeyCode.DELETE && selectedClassBox != null) {
+                        deleteSelectedClass();
+                    }
+                });
             }
+        });
+    }
+
+    private void deleteSelectedClass() {
+        if (selectedClassBox != null) {
+            // Remove the VBox from the canvas
+            canvasPane.getChildren().remove(selectedClassBox);
+
+            // If the class is stored in a data structure, remove it
+            Object associatedElement = elementMap.get(selectedClassBox);
+            if (associatedElement instanceof Class) {
+                classes.remove(associatedElement);
+            }
+
+            // Remove the box from the element map
+            elementMap.remove(selectedClassBox);
+
+            // Clear the selection
+            deselectClassBox();
+        }
+    }
+
 
 
     public void handleClassButtonClick() {activeTool = "Class";}
@@ -66,6 +94,25 @@ public class CanvasController {
         double x = event.getX();
         double y = event.getY();
     }
+    private void handleSingleClick(MouseEvent event) {
+        double x = event.getX();
+        double y = event.getY();
+
+        // Deselect if clicking outside any class
+        boolean clickedOutside = true;
+        for (Node node : canvasPane.getChildren()) {
+            if (node instanceof VBox && isWithinBounds(node, x, y)) {
+                clickedOutside = false;
+                if (node != selectedClassBox) {
+                    selectClassBox((VBox) node);
+                }
+                break;
+            }
+        }
+        if (clickedOutside) {
+            deselectClassBox();
+        }
+    }
 
 
     private void handleCanvasClick(MouseEvent event) {
@@ -75,12 +122,17 @@ public class CanvasController {
         if (event.getClickCount() == 2) {
             handleDoubleClick(x, y);
         }
+        else if (event.getClickCount()==1&&activeTool==null)
+        {
+            handleSingleClick(event);
+        }
         else if (activeTool != null) {
             BiConsumer<Double, Double> drawAction = drawActions.get(activeTool);
             if (drawAction != null) {
                 drawAction.accept(x, y);
             }
        }
+
     }
 
     private void handleDoubleClick(double x, double y) {
@@ -159,13 +211,29 @@ public class CanvasController {
                 showClassDetails(clazz);
 
 
+//            deleteButton.setOnAction(event -> {
+//                classes.remove(clazz);
+//                elementMap.remove(clazz);
+//                redrawcanvas();
+//            });
+
+
+
 
         }
     }
 
     private void showClassDetails(Object element) {
         Stage detailStage = new Stage();
+
+        // Main container
         VBox detailBox = new VBox(10);
+        detailBox.setPadding(new Insets(10));
+        detailBox.setFillWidth(true);
+
+        // Ensure the content inside the VBox is scrollable
+        ScrollPane scrollPane = new ScrollPane(detailBox);
+        scrollPane.setFitToWidth(true); // Ensures scrollpane resizes with content
 
         if (element instanceof Class) {
             Class clazz = (Class) element;
@@ -210,9 +278,13 @@ public class CanvasController {
             detailBox.getChildren().add(submitButton);
         }
 
+        // Create and set the scene
+        Scene scene = new Scene(scrollPane, 400, 300); // Adjusted width and height
         detailStage.setScene(scene);
+        detailStage.setTitle("Edit Class: " + ((Class) element).getClassName());
         detailStage.show();
     }
+
 
     private void updateAttributesBox(Class clazz, VBox attributesBox) {
         attributesBox.getChildren().clear();
@@ -390,4 +462,20 @@ public class CanvasController {
     public void snapCanvas(){
         activeTool = null;
     }
+
+    private void selectClassBox(VBox classBox) {
+        if (selectedClassBox != null) {
+            deselectClassBox();
+        }
+        selectedClassBox = classBox;
+        classBox.setStyle("-fx-border-color: blue; -fx-border-width: 3; -fx-padding: 5; -fx-background-color: #e0e0e0;");
+    }
+
+    private void deselectClassBox() {
+        if (selectedClassBox != null) {
+            selectedClassBox.setStyle("-fx-border-color: black; -fx-border-width: 2; -fx-padding: 5; -fx-background-color: #e0e0e0;");
+            selectedClassBox = null;
+        }
+    }
+
 }
