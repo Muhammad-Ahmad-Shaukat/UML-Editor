@@ -6,9 +6,19 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<AnchorPane xmlns="http://javafx.com/javafx"
-            xmlns:fx="http://javafx.com/fxml"
+<BorderPane xmlns:fx="http://javafx.com/fxml"
             fx:controller="com.boota.javaproject.UseCaseDiagramCanvasController"
-            prefHeight="400.0" prefWidth="600.0">
+            stylesheets="@styles.css">
 
-</AnchorPane>
+    <top>
+        <HBox spacing="10" style="-fx-padding: 10; -fx-background-color: #f0f0f0;">
+            <Button text="Actor" onAction="#handleActorClick"/>
+        </HBox>
+    </top>
+
+    <center>
+        <Pane fx:id="canvasPane"/>
+    </center>
+
+</BorderPane>
+
