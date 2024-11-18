@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.control.Button?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.boota.javaproject.CanvasController"
+            stylesheets="@styles.css">
+
+    <top>
+        <HBox spacing="10" style="-fx-padding: 10; -fx-background-color: #f0f0f0;">
+            <Button text="Class" onAction="#handleClassButtonClick"/>
+            <Button text="Comment" onAction="#handleCommentButtonClick"/>
+            <Button text="Snap Diagram" onAction="#snapCanvas"/>
+            <Button text="Association" onAction="#handleAssociationButtonClick"/>
+        </HBox>
+    </top>
+
+    <center>
+        <Pane fx:id="canvasPane"/>
+    </center>
+
+</BorderPane>

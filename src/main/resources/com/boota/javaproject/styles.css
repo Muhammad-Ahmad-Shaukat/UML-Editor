@@ -1,0 +1,56 @@
+/* styles.css */
+.button {
+    -fx-background-color: #4CAF50; /* Green */
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+}
+
+.vbox {
+    -fx-background-color: #f0f0f0;
+    -fx-padding: 20px;
+    -fx-border-color: #d3d3d3;
+    -fx-border-width: 2px;
+    -fx-border-radius: 5px;
+}
+
+/* styles.css */
+
+/* Style for the VBox container */
+.option-box {
+    -fx-background-color: linear-gradient(to bottom right, rgba(45, 52, 54, 0.9), rgba(99, 110, 114, 0.9));
+    -fx-background-radius: 15; /* Rounded corners for the container */
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.5), 10, 0.5, 0, 2); /* Soft shadow effect */
+    -fx-padding: 20px; /* Padding around the buttons */
+    -fx-spacing: 15px; /* Space between buttons */
+}
+
+/* Style for each button */
+.option-button {
+    -fx-background-color: linear-gradient(to bottom, #74b9ff, #0984e3); /* Light-to-dark gradient */
+    -fx-text-fill: #fff; /* White text color */
+    -fx-font-size: 16px; /* Larger font for better readability */
+    -fx-font-weight: bold; /* Bold text for emphasis */
+    -fx-background-radius: 10; /* Rounded corners on buttons */
+    -fx-padding: 10 15 10 15; /* More padding for a bigger button */
+    -fx-cursor: hand; /* Pointer cursor on hover */
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.3), 5, 0.5, 0, 2); /* Subtle shadow for depth */
+    -fx-border-color: #74b9ff;
+    -fx-border-width: 2px;
+    -fx-border-radius: 10;
+}
+
+/* Hover effect for buttons */
+.option-button:hover {
+    -fx-background-color: linear-gradient(to bottom, #0984e3, #74b9ff); /* Invert gradient on hover */
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.4), 8, 0.5, 0, 2); /* Enhance shadow on hover */
+    -fx-scale-x: 1.05; /* Slight scale effect on hover */
+    -fx-scale-y: 1.05;
+}
+
+/* Active/pressed effect for buttons */
+.option-button:pressed {
+    -fx-background-color: linear-gradient(to bottom, #74b9ff, #0984e3);
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.2), 3, 0.5, 0, 2);
+    -fx-scale-x: 1.0; /* Reset scale effect on press */
+    -fx-scale-y: 1.0;
+}
