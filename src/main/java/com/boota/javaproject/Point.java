@@ -24,4 +24,11 @@ public class Point {
     public void setY(Double y) {
         this.y = y;
     }
+
+    public double distance(Point other) {
+        if (other == null) {
+            throw new IllegalArgumentException("Other point cannot be null");
+        }
+        return Math.sqrt(Math.pow(this.x - other.x, 2) + Math.pow(this.y - other.y, 2));
+    }
 }
