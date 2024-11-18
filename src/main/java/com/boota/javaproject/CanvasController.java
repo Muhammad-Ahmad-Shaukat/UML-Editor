@@ -108,7 +108,7 @@ public class CanvasController {
         classBox.setLayoutY(y);
         classBox.setStyle("-fx-border-color: black; -fx-border-width: 2; -fx-padding: 5; -fx-background-color: #e0e0e0;");
 
-        Label classNameLabel = new Label(myClass.getClassName());
+        Label classNameLabel = new Label("Class"+ classes.size());
         classNameLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 14px;");
         VBox classNameBox = new VBox(classNameLabel);
         classNameBox.setMinWidth(initialWidth);
@@ -220,7 +220,12 @@ public class CanvasController {
             HBox attrBox = new HBox(5);
 
             TextField nameField = new TextField(attribute.getName());
-            TextField typeField = new TextField(attribute.getDataType());
+            ComboBox<String> DataTypeBox = new ComboBox<>();
+            DataTypeBox.getItems().addAll("String","Int","Double","Float","Boolean");
+            for (Class cl : classes)
+            {
+                DataTypeBox.getItems().add(cl.getClassName());
+            }
             ComboBox<String> accessModifierBox = new ComboBox<>();
             accessModifierBox.getItems().addAll("public", "private", "protected");
             accessModifierBox.setValue(attribute.getAccessModifier());
@@ -233,7 +238,7 @@ public class CanvasController {
 
             attrBox.getChildren().addAll(
                     new Label("Name:"), nameField,
-                    new Label("Type:"), typeField,
+                    new Label("Type:"), DataTypeBox,
                     new Label("Access:"), accessModifierBox,
                     deleteButton
             );
@@ -241,7 +246,7 @@ public class CanvasController {
 
             // Update attribute on field change
             nameField.textProperty().addListener((obs, oldText, newText) -> attribute.setName(newText));
-            typeField.textProperty().addListener((obs, oldText, newText) -> attribute.setDataType(newText));
+            DataTypeBox.valueProperty().addListener((obs, oldText, newText) -> attribute.setDataType(newText));
             accessModifierBox.valueProperty().addListener((obs, oldVal, newVal) -> attribute.setAccessModifier(newVal));
         }
     }

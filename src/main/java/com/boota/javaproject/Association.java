@@ -10,6 +10,7 @@ public class Association {
     Class initialClass;
     Class finalClass;
 
+    public Association(Point start, Point end) {
         this.start = start;
         this.end = end;
     }
