@@ -23,7 +23,7 @@ import java.util.Map;
 import java.util.function.BiConsumer;
 
 
-public class CanvasController {
+public class ClassDiagramCanvasController {
 
     private Point initialPoint;
     private Point finalPoint;

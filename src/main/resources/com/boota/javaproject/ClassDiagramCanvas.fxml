@@ -6,7 +6,7 @@
 <?import javafx.scene.control.Button?>
 
 <BorderPane xmlns:fx="http://javafx.com/fxml"
-            fx:controller="com.boota.javaproject.CanvasController"
+            fx:controller="com.boota.javaproject.ClassDiagramCanvasController"
             stylesheets="@styles.css">
 
     <top>
