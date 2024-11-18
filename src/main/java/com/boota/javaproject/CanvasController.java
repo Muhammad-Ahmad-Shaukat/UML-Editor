@@ -15,11 +15,8 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
 import javafx.stage.Stage;
-import javafx.stage.StageStyle;
 
-import java.awt.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -97,7 +94,7 @@ public class CanvasController {
         double x = event.getX();
         double y = event.getY();
     }
-    private void handleCanasClick(MouseEvent event) {
+    private void handleSingleClick(MouseEvent event) {
         double x = event.getX();
         double y = event.getY();
 
@@ -127,7 +124,7 @@ public class CanvasController {
         }
         else if (event.getClickCount()==1&&activeTool==null)
         {
-            handleCanasClick(event);
+            handleSingleClick(event);
         }
         else if (activeTool != null) {
             BiConsumer<Double, Double> drawAction = drawActions.get(activeTool);
