@@ -18,7 +18,6 @@
             <Button text="BoundaryBox" onAction="#handleBoundaryBoxClick"/>
             <Button text="Include" onAction="#handleIncludeClick"/>
             <Button text="Exclude" onAction="#handleExcludeClick"/>
-            <Button text="xyz" onAction="#reDrawCanvas"/>
         </HBox>
     </top>
 

@@ -20,12 +20,20 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.shape.SVGPath;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import org.apache.batik.transcoder.TranscoderInput;
+import org.apache.batik.transcoder.TranscoderOutput;
+import org.apache.batik.transcoder.image.PNGTranscoder;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -165,48 +173,87 @@ public class UseCaseDiagramCanvasController {
         activeTool = "UseCase";
     }
 
+
     public void drawActor(Point initial) {
         activeTool = null;
         UseCaseActor actor = new UseCaseActor(initial);
         double size = 50.0;
 
-        Rectangle square = new Rectangle(size, size);
-        square.setFill(Color.BLACK);
+        String svgFilePath = "C:\\Users\\ahmad\\IdeaProjects\\javaproject\\src\\main\\resources\\com\\boota\\javaproject\\actor.svg";
+
+        Image svgImage = null;
+        try {
+            File svgFile = new File(svgFilePath);
+            File pngFile = File.createTempFile("temp-actor", ".png");
+
+            TranscoderInput inputSvgImage = new TranscoderInput(new FileInputStream(svgFile));
+            TranscoderOutput outputPngImage = new TranscoderOutput(new FileOutputStream(pngFile));
+
+            PNGTranscoder transcoder = new PNGTranscoder();
+            transcoder.addTranscodingHint(PNGTranscoder.KEY_WIDTH, (float) size * 2);
+            transcoder.addTranscodingHint(PNGTranscoder.KEY_HEIGHT, (float) size * 4);
+            transcoder.transcode(inputSvgImage, outputPngImage);
+            svgImage = new Image(pngFile.toURI().toString());
+
+            pngFile.deleteOnExit();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        ImageView svgImageView = new ImageView(svgImage);
+        svgImageView.setFitWidth(size);
+        svgImageView.setPreserveRatio(true);
 
         Label actorNameLabel = new Label(actor.getName());
-        actorNameLabel.setTextFill(Color.BLACK);
-
+        actorNameLabel.setTextFill(javafx.scene.paint.Color.BLACK);
         VBox actorBox = new VBox(5);
         actorBox.setLayoutX(initial.getX());
         actorBox.setLayoutY(initial.getY());
         actorBox.setAlignment(Pos.CENTER);
-        actorBox.getChildren().addAll(square, actorNameLabel);
-
+        actorBox.getChildren().addAll(svgImageView, actorNameLabel);
         canvasPane.getChildren().add(actorBox);
-
-
         actors.add(actor);
         elementMap.put(initial, actor);
     }
+
 
     public void reDrawActor(UseCaseActor actor) {
         activeTool = null;
         double size = 50.0;
 
-        Rectangle square = new Rectangle(size, size);
-        square.setFill(Color.BLACK);
+        String svgFilePath = "C:\\Users\\ahmad\\IdeaProjects\\javaproject\\src\\main\\resources\\com\\boota\\javaproject\\actor.svg";
+
+        Image svgImage = null;
+        try {
+            File svgFile = new File(svgFilePath);
+            File pngFile = File.createTempFile("temp-actor", ".png");
+
+            TranscoderInput inputSvgImage = new TranscoderInput(new FileInputStream(svgFile));
+            TranscoderOutput outputPngImage = new TranscoderOutput(new FileOutputStream(pngFile));
+
+            PNGTranscoder transcoder = new PNGTranscoder();
+            transcoder.addTranscodingHint(PNGTranscoder.KEY_WIDTH, (float) size * 2);
+            transcoder.addTranscodingHint(PNGTranscoder.KEY_HEIGHT, (float) size * 4);
+            transcoder.transcode(inputSvgImage, outputPngImage);
+            svgImage = new Image(pngFile.toURI().toString());
+
+            pngFile.deleteOnExit();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        ImageView svgImageView = new ImageView(svgImage);
+        svgImageView.setFitWidth(size);
+        svgImageView.setPreserveRatio(true);
 
         Label actorNameLabel = new Label(actor.getName());
-        actorNameLabel.setTextFill(Color.BLACK);
-
+        actorNameLabel.setTextFill(javafx.scene.paint.Color.BLACK);
         VBox actorBox = new VBox(5);
         actorBox.setLayoutX(actor.getInitial().getX());
         actorBox.setLayoutY(actor.getInitial().getY());
         actorBox.setAlignment(Pos.CENTER);
-        actorBox.getChildren().addAll(square, actorNameLabel);
-
+        actorBox.getChildren().addAll(svgImageView, actorNameLabel);
         canvasPane.getChildren().add(actorBox);
-
         actors.add(actor);
         elementMap.put(actor.getInitial(), actor);
     }
