@@ -1,22 +1,34 @@
 package com.boota.javaproject;
 
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
 
@@ -27,11 +39,12 @@ public class UseCaseDiagramCanvasController {
 
     private Canvas canvas;
     private GraphicsContext gc;
+
     ArrayList<UseCase> useCases = new ArrayList<>();
     ArrayList<UseCaseAssociation> associations = new ArrayList<>();
     ArrayList<UseCaseActor> actors = new ArrayList<>();
-    ArrayList<DependencyRelationship> includeRelation = new ArrayList<>();
-    ArrayList<DependencyRelationship> excludeRelation = new ArrayList<>();
+    ArrayList<DependencyRelationship> includeRelations = new ArrayList<>();
+    ArrayList<DependencyRelationship> excludeRelations = new ArrayList<>();
 
     private String activeTool = null;
     private Point initialPoint = null;
@@ -63,26 +76,42 @@ public class UseCaseDiagramCanvasController {
             Object selectedElement = findElementNearPoint(clickPoint);
 
             if (selectedElement != null) {
-                System.out.println("Element selected: " + selectedElement);
-
-                // Check if the selected element is a UseCaseActor
                 if (selectedElement instanceof UseCaseActor) {
                     UseCaseActor actor = (UseCaseActor) selectedElement;
-                    showActorDetails(actor); // Call the function to show actor details
-                } else {
-                    System.out.println("Selected element is not a UseCaseActor.");
-                    // Optionally, handle other element types here
+                    showActorDetails(actor);
                 }
             } else {
-                System.out.println("No element found near point: " + clickPoint);
+
             }
         }
     }
 
-
     private void showActorDetails(UseCaseActor actor) {
-        System.out.println("Showing actor: ");
+        Stage stage = new Stage();
+        stage.setTitle("Actor Details");
+        VBox layout = new VBox(10);
+        layout.setPadding(new Insets(10));
+
+        Label nameLabel = new Label("Actor Name:");
+        TextField nameField = new TextField(actor.getName());
+
+        Button submitButton = new Button("Submit");
+        submitButton.setOnAction(e -> {
+            String newName = nameField.getText();
+            actor.setName(newName); // Update the actor's name
+            reDrawCanvas(); // Redraw the canvas to reflect the changes
+            stage.close(); // Close the form window
+        });
+
+        // Add the components to the layout
+        layout.getChildren().addAll(nameLabel, nameField, submitButton);
+
+        // Create and set the Scene
+        Scene scene = new Scene(layout, 300, 150);
+        stage.setScene(scene);
+        stage.show(); // Show the form
     }
+
 
     private void handleMouseRelease(MouseEvent event) {
         if (activeTool != null && initialPoint != null) {
@@ -138,17 +167,49 @@ public class UseCaseDiagramCanvasController {
 
     public void drawActor(Point initial) {
         activeTool = null;
-
-        double size = 50.0;
-        Rectangle square = new Rectangle(initial.getX(), initial.getY(), size, size);
-        square.setFill(Color.BLACK);
-        canvasPane.getChildren().add(square);
-
         UseCaseActor actor = new UseCaseActor(initial);
+        double size = 50.0;
+
+        Rectangle square = new Rectangle(size, size);
+        square.setFill(Color.BLACK);
+
+        Label actorNameLabel = new Label(actor.getName());
+        actorNameLabel.setTextFill(Color.BLACK);
+
+        VBox actorBox = new VBox(5);
+        actorBox.setLayoutX(initial.getX());
+        actorBox.setLayoutY(initial.getY());
+        actorBox.setAlignment(Pos.CENTER);
+        actorBox.getChildren().addAll(square, actorNameLabel);
+
+        canvasPane.getChildren().add(actorBox);
+
+
         actors.add(actor);
         elementMap.put(initial, actor);
     }
 
+    public void reDrawActor(UseCaseActor actor) {
+        activeTool = null;
+        double size = 50.0;
+
+        Rectangle square = new Rectangle(size, size);
+        square.setFill(Color.BLACK);
+
+        Label actorNameLabel = new Label(actor.getName());
+        actorNameLabel.setTextFill(Color.BLACK);
+
+        VBox actorBox = new VBox(5);
+        actorBox.setLayoutX(actor.getInitial().getX());
+        actorBox.setLayoutY(actor.getInitial().getY());
+        actorBox.setAlignment(Pos.CENTER);
+        actorBox.getChildren().addAll(square, actorNameLabel);
+
+        canvasPane.getChildren().add(actorBox);
+
+        actors.add(actor);
+        elementMap.put(actor.getInitial(), actor);
+    }
 
     public void drawUseCase(Point initial)  {
         activeTool = null;
@@ -183,5 +244,31 @@ public class UseCaseDiagramCanvasController {
             }
         }
         return null;
+    }
+
+    public void reDrawCanvas(){
+        List<UseCaseActor> actorsCopy = new ArrayList<>(actors);
+canvasPane.getChildren().clear();
+
+
+            // Loop to draw actors
+        for (UseCaseActor actor : actorsCopy) {
+            reDrawActor(actor);
+        }
+//        for (UseCaseActor actor : actors) {
+//            drawActor(actor.getInitial());
+//        }
+//        for (UseCaseAssociation association : associations) {
+//            drawAssociation(association.getStart(), association.getEnd());
+//        }
+//        for (UseCase useCase : useCases) {
+//            drawUseCase(useCase.getInitialpoint());
+//        }
+//        for (DependencyRelationship includeRelation : includeRelations) {
+//            drawInclude(includeRelation.getStartPoint(), includeRelation.getEndPoint());
+//        }
+//        for (DependencyRelationship excludeRelation : excludeRelations) {
+//            drawExclude(excludeRelation.getStartPoint(), excludeRelation.getEndPoint());
+//        }
     }
 }
