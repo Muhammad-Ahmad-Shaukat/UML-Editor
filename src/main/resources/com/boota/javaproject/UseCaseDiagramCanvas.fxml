@@ -13,6 +13,11 @@
     <top>
         <HBox spacing="10" style="-fx-padding: 10; -fx-background-color: #f0f0f0;">
             <Button text="Actor" onAction="#handleActorClick"/>
+            <Button text="Association" onAction="#handleAssociationClick"/>
+            <Button text="UseCase" onAction="#handleUseCaseClick"/>
+            <Button text="BoundaryBox" onAction="#handleBoundaryBoxClick"/>
+            <Button text="Include" onAction="#handleIncludeClick"/>
+            <Button text="Exclude" onAction="#handleExcludeClick"/>
         </HBox>
     </top>
 
