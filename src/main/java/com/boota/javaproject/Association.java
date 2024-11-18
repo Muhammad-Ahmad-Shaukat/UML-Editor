@@ -1,46 +1,18 @@
 package com.boota.javaproject;
 
 
-public class Association {
-    Point start;
-    Point end;
+public class Association extends Line{
+
     Multiplicity startMultiplicity;
     Multiplicity endMultiplicity;
     String text;
-    Class initialClass;
-    Class finalClass;
 
-    public Association(Point start, Point end) {
-        this.start = start;
-        this.end = end;
-    }
 
-    public Association(Point start, Point end, Multiplicity startMultiplicity,
-                       Multiplicity endMultiplicity, String text, Class initialClass,
-                       Class finalClass) {
-        this.start = start;
-        this.end = end;
+    public Association(Class initialClass, Class finalClass, Point end, Point start,Multiplicity startMultiplicity, Multiplicity endMultiplicity, String text) {
+        super(initialClass, finalClass, end, start);
         this.startMultiplicity = startMultiplicity;
         this.endMultiplicity = endMultiplicity;
         this.text = text;
-        this.initialClass = initialClass;
-        this.finalClass = finalClass;
-    }
-
-    public Point getStart() {
-        return start;
-    }
-
-    public void setStart(Point start) {
-        this.start = start;
-    }
-
-    public Point getEnd() {
-        return end;
-    }
-
-    public void setEnd(Point end) {
-        this.end = end;
     }
 
     public Multiplicity getStartMultiplicity() {
@@ -66,21 +38,4 @@ public class Association {
     public void setText(String text) {
         this.text = text;
     }
-
-    public Class getInitialClass() {
-        return initialClass;
-    }
-
-    public void setInitialClass(Class initialClass) {
-        this.initialClass = initialClass;
-    }
-
-    public Class getFinalClass() {
-        return finalClass;
-    }
-
-    public void setFinalClass(Class finalClass) {
-        this.finalClass = finalClass;
-    }
-
 }
