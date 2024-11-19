@@ -1,5 +1,6 @@
 package com.boota.javaproject;
 
+import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXML;
 import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
@@ -13,6 +14,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
+import javafx.scene.image.WritableImage;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.image.ImageView;
@@ -20,11 +22,15 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Ellipse;
+import javafx.scene.shape.Line;
+import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import org.apache.batik.transcoder.TranscoderInput;
 import org.apache.batik.transcoder.TranscoderOutput;
 import org.apache.batik.transcoder.image.PNGTranscoder;
+import javax.imageio.ImageIO;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -46,11 +52,11 @@ public class UseCaseDiagramCanvasController {
     ArrayList<UseCaseActor> actors = new ArrayList<>();
     ArrayList<DependencyRelationship> includeRelations = new ArrayList<>();
     ArrayList<DependencyRelationship> excludeRelations = new ArrayList<>();
+    ArrayList<UseCaseSystemBoundaryBox> boundaryBoxes = new ArrayList<>();
 
     private String activeTool = null;
     private Point initialPoint = null;
 
-    // Map to track all elements by their positions
     private Map<Node, Object> elementMap = new HashMap<>();
 
 
@@ -59,6 +65,9 @@ public class UseCaseDiagramCanvasController {
         canvas = new Canvas(canvasPane.getWidth(), canvasPane.getHeight());
         gc = canvas.getGraphicsContext2D();
         canvasPane.getChildren().add(canvas);
+
+        canvas.widthProperty().bind(canvasPane.widthProperty());
+        canvas.heightProperty().bind(canvasPane.heightProperty());
 
         canvasPane.setOnMouseMoved(this::trackMouseCoordinates);
         canvasPane.setOnMousePressed(this::handleMousePress);
@@ -91,55 +100,6 @@ public class UseCaseDiagramCanvasController {
         }
     }
 
-    private void showUseCasdeDetails(UseCase useCase) {
-        Stage stage = new Stage();
-        stage.setTitle("UseCase Details");
-        VBox layout = new VBox(10);
-        layout.setPadding(new Insets(10));
-
-        Label nameLabel = new Label("UseCase Name:");
-        TextField nameField = new TextField(useCase.getName());
-
-        Button submitButton = new Button("Submit");
-        submitButton.setOnAction(e -> {
-            String newName = nameField.getText();
-            useCase.setName(newName);
-            reDrawCanvas();
-            stage.close();
-        });
-
-        layout.getChildren().addAll(nameLabel, nameField, submitButton);
-
-        Scene scene = new Scene(layout, 300, 150);
-        stage.setScene(scene);
-        stage.show();
-    }
-
-    private void showActorDetails(UseCaseActor actor) {
-        Stage stage = new Stage();
-        stage.setTitle("Actor Details");
-        VBox layout = new VBox(10);
-        layout.setPadding(new Insets(10));
-
-        Label nameLabel = new Label("Actor Name:");
-        TextField nameField = new TextField(actor.getName());
-
-        Button submitButton = new Button("Submit");
-        submitButton.setOnAction(e -> {
-            String newName = nameField.getText();
-            actor.setName(newName);
-            reDrawCanvas();
-            stage.close();
-        });
-
-        // Add the components to the layout
-        layout.getChildren().addAll(nameLabel, nameField, submitButton);
-
-        // Create and set the Scene
-        Scene scene = new Scene(layout, 300, 150);
-        stage.setScene(scene);
-        stage.show(); // Show the form
-    }
 
 
     private void handleMouseRelease(MouseEvent event) {
@@ -195,6 +155,219 @@ public class UseCaseDiagramCanvasController {
     }
 
 
+    public void drawAssociation(Point initial, Point finalPoint) {
+        activeTool = null;
+        Boolean actor = false;
+        Boolean useCase = false;
+        UseCaseActor associatedActor = null;
+        UseCase associatedUseCase = null;
+
+        Object objectX = findElementNearPoint(initial);
+        Object objectY = findElementNearPoint(finalPoint);
+
+        if (objectX != null) {
+            if (objectX instanceof UseCaseActor && !actor) {
+                actor = true;
+                associatedActor = (UseCaseActor) objectX;
+            } else if (objectX instanceof UseCase && !useCase) {
+                useCase = true;
+                associatedUseCase = (UseCase) objectX;
+            }
+        } else {
+            showWarning("No Actor Found", "No Actor or Use Case Found at Initial Point");
+            return;
+        }
+
+        if (objectY != null) {
+            if (objectY instanceof UseCaseActor && !actor) {
+                actor = true;
+                associatedActor = (UseCaseActor) objectY;
+            } else if (objectY instanceof UseCase && !useCase) {
+                useCase = true;
+                associatedUseCase = (UseCase) objectY;
+            } else {
+                showWarning("Warning", "Cannot Have Association from Actor to Actor or Use Case to Use Case");
+            }
+        } else {
+            showWarning("No Use Case Found", "No Actor or Use Case Found at Final Point");
+            return;
+        }
+
+        drawLine(associatedActor.getInitial(),associatedUseCase.getInitialpoint());
+
+    }
+
+    private void showWarning(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.WARNING);
+        alert.setTitle(title);
+        alert.setHeaderText(title);
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
+
+    public void clearCanvas(){
+        canvasPane.getChildren().clear();
+        actors.clear();
+        useCases.clear();
+        associations.clear();
+        boundaryBoxes.clear();
+        includeRelations.clear();
+        elementMap.clear();
+        excludeRelations.clear();
+    }
+
+    public void drawLine(Point x, Point y) {
+
+        Line line = new Line();
+        line.setStartX(x.getX());
+        line.setStartY(x.getY());
+        line.setEndX(y.getX());
+        line.setEndY(y.getY());
+        line.setStrokeWidth(2);
+        line.setStroke(Color.BLACK);
+        canvasPane.getChildren().add(line);
+
+    }
+
+    private UseCase checkUseCaseOnPoint(Point point) {
+        UseCase associatedUseCase = null;
+        Object object = findElementNearPoint(point);
+        if (object instanceof UseCase) {
+            associatedUseCase = (UseCase) object;
+            return associatedUseCase;
+        }
+        return null;
+    }
+
+    public void drawInclude(Point initial, Point finalPoint) {
+        activeTool = null;
+        UseCase startUseCase = checkUseCaseOnPoint(initial);
+        UseCase endUseCase = checkUseCaseOnPoint(finalPoint);
+
+        if (startUseCase != null && endUseCase != null) {
+
+        }else if (startUseCase == null){
+            showWarning("Use Case Not Found","Initial Point Does Not Have Use Case");
+        } else if (endUseCase == null) {
+            showWarning("Use Case Found","Final Point Does Not Have Use Case");
+        }else{
+            showWarning("Error","No Use Case Found");
+        }
+    }
+
+    public void handleSnapshot() {
+        activeTool = null;
+        try {
+            double canvasWidth = canvas.getWidth();
+            double canvasHeight = canvas.getHeight();
+
+            if (canvasWidth <= 0 || canvasHeight <= 0) {
+                showWarning("Warning", "Canvas Dimension Error");
+                return;
+            }
+            WritableImage writableImage = new WritableImage((int) canvasWidth, (int) canvasHeight);
+            canvas.snapshot(null, writableImage);
+            FileChooser fileChooser = new FileChooser();
+            fileChooser.setTitle("Save Canvas Snapshot");
+            fileChooser.setInitialFileName("canvas_snapshot.png");
+            fileChooser.getExtensionFilters().add(
+                    new FileChooser.ExtensionFilter("PNG Files", "*.png")
+            );
+
+            File file = fileChooser.showSaveDialog(null);
+            if (file != null) {
+                ImageIO.write(SwingFXUtils.fromFXImage(writableImage, null), "png", file);
+                Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                alert.setTitle("Save Canvas Snapshot");
+                alert.setHeaderText("Image Saved");
+                alert.showAndWait();
+            } else {
+                showWarning("Save Cancelled", "No file was selected.");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            showWarning("Unexpected Error", "Unable to save snapshot. Please try later.");
+        }
+    }
+
+    public void drawExclude(Point initial, Point finalPoint) {
+        activeTool = null;
+        UseCase startUseCase = checkUseCaseOnPoint(initial);
+        UseCase endUseCase = checkUseCaseOnPoint(finalPoint);
+        if (startUseCase != null && endUseCase != null) {
+
+        }else if (startUseCase == null){
+            showWarning("Use Case Not Found","Initial Point Does Not Have Use Case");
+        } else if (endUseCase == null) {
+            showWarning("Use Case Found","Final Point Does Not Have Use Case");
+        }else{
+            showWarning("Error","No Use Case Found");
+        }
+    }
+
+    public void drawBoundaryBox(Point initial) {
+        activeTool = null;
+        Rectangle rectangle = new Rectangle();
+        rectangle.setX(initial.getX());
+        rectangle.setY(initial.getY());
+        rectangle.setWidth(300.0);
+        rectangle.setHeight(350.0);
+        rectangle.setFill(Color.TRANSPARENT);
+        rectangle.setStroke(Color.BLACK);
+        rectangle.setStrokeWidth(2.0);
+
+        UseCaseSystemBoundaryBox boundaryBox = new UseCaseSystemBoundaryBox(initial,350.0,300.0);
+        Label label = new Label(boundaryBox.getName());
+        label.setStyle("-fx-font-size: 14px; -fx-font-weight: bold;");
+        label.setLayoutX(initial.getX()  + rectangle.getWidth() / 2 - 40);
+        label.setLayoutY(initial.getY() + 4);
+        boundaryBoxes.add(boundaryBox);
+
+        canvasPane.getChildren().addAll(rectangle,label);
+        elementMap.put(rectangle, boundaryBox);
+    }
+
+    public void reDrawBoundaryBox(UseCaseSystemBoundaryBox box) {
+        activeTool = null;
+        Rectangle rectangle = new Rectangle();
+        rectangle.setX(box.getInitialPoint().getX());
+        rectangle.setY(box.getInitialPoint().getY());
+        rectangle.setWidth(box.getWidth());
+        rectangle.setHeight(box.getLength());
+        rectangle.setFill(Color.TRANSPARENT);
+        rectangle.setStroke(Color.BLACK);
+        rectangle.setStrokeWidth(2.0);
+
+        Label label = new Label(box.getName());
+        label.setStyle("-fx-font-size: 14px; -fx-font-weight: bold;");
+        label.setLayoutX(box.getInitialPoint().getX()  + rectangle.getWidth() / 2 - 40);
+        label.setLayoutY(box.getInitialPoint().getY() + 4);
+        boundaryBoxes.add(box);
+
+        canvasPane.getChildren().addAll(rectangle,label);
+        elementMap.put(rectangle, box);
+    }
+
+    private Object findElementNearPoint(Point point) {
+        for (Map.Entry<Node, Object> entry : elementMap.entrySet()) {
+            if (entry.getKey() instanceof VBox) {
+                VBox vbox = (VBox) entry.getKey();
+                Bounds bounds = vbox.getBoundsInParent();
+                if (bounds.contains(point.getX(), point.getY())) {
+                    return entry.getValue();
+                }
+            }
+            if (entry.getKey() instanceof StackPane) {
+                StackPane stackPane = (StackPane) entry.getKey();
+                Bounds bounds = stackPane.getBoundsInParent();
+                if (bounds.contains(point.getX(), point.getY())) {
+                    return entry.getValue();
+                }
+            }
+        }
+        return null;
+    }
+
     public void drawActor(Point initial) {
         activeTool = null;
         UseCaseActor actor = new UseCaseActor(initial);
@@ -233,7 +406,6 @@ public class UseCaseDiagramCanvasController {
         actorBox.getChildren().addAll(svgImageView, actorNameLabel);
 
         canvasPane.getChildren().add(actorBox);
-
 
         elementMap.put(actorBox, actor);
         actors.add(actor);
@@ -348,105 +520,61 @@ public class UseCaseDiagramCanvasController {
         elementMap.put(useCasePane, useCase);
     }
 
-    public void drawAssociation(Point initial, Point finalPoint) {
-        activeTool = null;
-        Boolean actor = false;
-        Boolean useCase = false;
-        UseCaseActor associatedActor = null;
-        UseCase associatedUseCase = null;
+    private void showUseCasdeDetails(UseCase useCase) {
+        Stage stage = new Stage();
+        stage.setTitle("UseCase Details");
+        VBox layout = new VBox(10);
+        layout.setPadding(new Insets(10));
 
-        Object objectX = findElementNearPoint(initial);
-        Object objectY = findElementNearPoint(finalPoint);
+        Label nameLabel = new Label("UseCase Name:");
+        TextField nameField = new TextField(useCase.getName());
 
-        if (objectX != null) {
-            if (objectX instanceof UseCaseActor && !actor) {
-                actor = true;
-                associatedActor = (UseCaseActor) objectX;
-            } else if (objectX instanceof UseCase && !useCase) {
-                useCase = true;
-                associatedUseCase = (UseCase) objectX;
-            }
-        } else {
-            showWarning("No Actor Found", "No Actor or Use Case Found at Initial Point");
-        }
+        Button submitButton = new Button("Submit");
+        submitButton.setOnAction(e -> {
+            String newName = nameField.getText();
+            useCase.setName(newName);
+            reDrawCanvas();
+            stage.close();
+        });
 
-        if (objectY != null) {
-            if (objectY instanceof UseCaseActor && !actor) {
-                actor = true;
-                associatedActor = (UseCaseActor) objectY;
-            } else if (objectY instanceof UseCase && !useCase) {
-                useCase = true;
-                associatedUseCase = (UseCase) objectY;
-            } else {
-                showWarning("Warning", "Cannot Have Association from Actor to Actor or Use Case to Use Case");
-            }
-        } else {
-            showWarning("No Use Case Found", "No Actor or Use Case Found at Final Point");
-        }
+        layout.getChildren().addAll(nameLabel, nameField, submitButton);
 
+        Scene scene = new Scene(layout, 300, 150);
+        stage.setScene(scene);
+        stage.show();
     }
 
-    private void showWarning(String title, String message) {
-        Alert alert = new Alert(Alert.AlertType.WARNING);
-        alert.setTitle(title);
-        alert.setHeaderText(title);
-        alert.setContentText(message);
-        alert.showAndWait();
-    }
+    private void showActorDetails(UseCaseActor actor) {
+        Stage stage = new Stage();
+        stage.setTitle("Actor Details");
+        VBox layout = new VBox(10);
+        layout.setPadding(new Insets(10));
 
+        Label nameLabel = new Label("Actor Name:");
+        TextField nameField = new TextField(actor.getName());
 
-    private void drawLine(Point x, Point y){
-        gc.setStroke(Color.BLACK);
-        gc.setLineWidth(2);
-        gc.strokeLine(x.getX(), y.getY(), x.getX(), y.getY());
-    }
+        Button submitButton = new Button("Submit");
+        submitButton.setOnAction(e -> {
+            String newName = nameField.getText();
+            actor.setName(newName);
+            reDrawCanvas();
+            stage.close();
+        });
 
-    private Node getNodeForObject(Object obj) {
-        for (Map.Entry<Node, Object> entry : elementMap.entrySet()) {
-            if (entry.getValue().equals(obj)) {
-                return entry.getKey();
-            }
-        }
-        return null;
-    }
+        // Add the components to the layout
+        layout.getChildren().addAll(nameLabel, nameField, submitButton);
 
-
-    public void drawInclude(Point initial, Point finalPoint) {
-        activeTool = null;
-    }
-
-    public void drawExclude(Point initial, Point finalPoint) {
-        activeTool = null;
-    }
-
-    public void drawBoundaryBox(Point initial) {
-        activeTool = null;
-    }
-
-    private Object findElementNearPoint(Point point) {
-        for (Map.Entry<Node, Object> entry : elementMap.entrySet()) {
-            if (entry.getKey() instanceof VBox) {
-                VBox vbox = (VBox) entry.getKey();
-                Bounds bounds = vbox.getBoundsInParent();
-                if (bounds.contains(point.getX(), point.getY())) {
-                    return entry.getValue();
-                }
-            }
-            if (entry.getKey() instanceof StackPane) {
-                StackPane stackPane = (StackPane) entry.getKey();
-                Bounds bounds = stackPane.getBoundsInParent();
-                if (bounds.contains(point.getX(), point.getY())) {
-                    return entry.getValue();
-                }
-            }
-        }
-        return null;
+        // Create and set the Scene
+        Scene scene = new Scene(layout, 300, 150);
+        stage.setScene(scene);
+        stage.show(); // Show the form
     }
 
     public void reDrawCanvas(){
         List<UseCaseActor> actorsCopy = new ArrayList<>(actors);
         List<UseCase> useCasesCopy = new ArrayList<>(useCases);
-        canvasPane.getChildren().clear();
+        List<UseCaseSystemBoundaryBox> boundaryBoxesCopy = new ArrayList<>(boundaryBoxes);
+        clearCanvas();
 
         for (UseCaseActor actor : actorsCopy) {
             reDrawActor(actor);
@@ -454,6 +582,9 @@ public class UseCaseDiagramCanvasController {
         for (UseCase useCase : useCasesCopy) {
             reDrawUseCase(useCase);
        }
+        for (UseCaseSystemBoundaryBox boundaryBox : boundaryBoxesCopy) {
+            reDrawBoundaryBox(boundaryBox);
+        }
 //        for (UseCaseAssociation association : associations) {
 //            drawAssociation(association.getStart(), association.getEnd());
 //        }
