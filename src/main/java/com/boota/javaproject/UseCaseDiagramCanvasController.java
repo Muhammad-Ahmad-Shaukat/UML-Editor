@@ -8,6 +8,7 @@ import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
@@ -349,7 +350,66 @@ public class UseCaseDiagramCanvasController {
 
     public void drawAssociation(Point initial, Point finalPoint) {
         activeTool = null;
+        Boolean actor = false;
+        Boolean useCase = false;
+        UseCaseActor associatedActor = null;
+        UseCase associatedUseCase = null;
+
+        Object objectX = findElementNearPoint(initial);
+        Object objectY = findElementNearPoint(finalPoint);
+
+        if (objectX != null) {
+            if (objectX instanceof UseCaseActor && !actor) {
+                actor = true;
+                associatedActor = (UseCaseActor) objectX;
+            } else if (objectX instanceof UseCase && !useCase) {
+                useCase = true;
+                associatedUseCase = (UseCase) objectX;
             }
+        } else {
+            showWarning("No Actor Found", "No Actor or Use Case Found at Initial Point");
+        }
+
+        if (objectY != null) {
+            if (objectY instanceof UseCaseActor && !actor) {
+                actor = true;
+                associatedActor = (UseCaseActor) objectY;
+            } else if (objectY instanceof UseCase && !useCase) {
+                useCase = true;
+                associatedUseCase = (UseCase) objectY;
+            } else {
+                showWarning("Warning", "Cannot Have Association from Actor to Actor or Use Case to Use Case");
+            }
+        } else {
+            showWarning("No Use Case Found", "No Actor or Use Case Found at Final Point");
+        }
+
+    }
+
+    private void showWarning(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.WARNING);
+        alert.setTitle(title);
+        alert.setHeaderText(title);
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
+
+
+    private void drawLine(Point x, Point y){
+        gc.setStroke(Color.BLACK);
+        gc.setLineWidth(2);
+        gc.strokeLine(x.getX(), y.getY(), x.getX(), y.getY());
+    }
+
+    private Node getNodeForObject(Object obj) {
+        for (Map.Entry<Node, Object> entry : elementMap.entrySet()) {
+            if (entry.getValue().equals(obj)) {
+                return entry.getKey();
+            }
+        }
+        return null;
+    }
+
 
     public void drawInclude(Point initial, Point finalPoint) {
         activeTool = null;

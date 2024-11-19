@@ -49,4 +49,20 @@ public class UseCaseAssociation {
     public void setUseCase(UseCase useCase) {
         this.useCase = useCase;
     }
+
+    public boolean isPointOnLine(Point point) {
+        double tolerance = 5.0;
+        double lineLength = Math.sqrt(Math.pow(end.getX() - start.getX(), 2) + Math.pow(end.getY() - start.getY(), 2));
+        double area = Math.abs((point.getX() - start.getX()) * (end.getY() - start.getY()) -
+                (point.getY() - start.getY()) * (end.getX() - start.getX()));
+        double distanceFromLine = area / lineLength;
+
+        if (distanceFromLine > tolerance) {
+            return false;
+        }
+        return (point.getX() >= Math.min(start.getX(), end.getX()) &&
+                point.getX() <= Math.max(start.getX(), end.getX()) &&
+                point.getY() >= Math.min(start.getY(), end.getY()) &&
+                point.getY() <= Math.max(start.getY(), end.getY()));
+    }
 }
