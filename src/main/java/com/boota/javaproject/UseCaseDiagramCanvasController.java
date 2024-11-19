@@ -1,44 +1,36 @@
 package com.boota.javaproject;
 
-import javafx.application.Platform;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
+import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Rectangle;
-import javafx.scene.shape.SVGPath;
-import javafx.stage.Modality;
+import javafx.scene.shape.Ellipse;
+import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import org.apache.batik.transcoder.TranscoderInput;
 import org.apache.batik.transcoder.TranscoderOutput;
 import org.apache.batik.transcoder.image.PNGTranscoder;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.IOException;
-import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.BiConsumer;
 
 public class UseCaseDiagramCanvasController {
 
@@ -58,7 +50,8 @@ public class UseCaseDiagramCanvasController {
     private Point initialPoint = null;
 
     // Map to track all elements by their positions
-    private Map<Point, Object> elementMap = new HashMap<>();
+    private Map<Node, Object> elementMap = new HashMap<>();
+
 
     @FXML
     public void initialize() {
@@ -87,11 +80,38 @@ public class UseCaseDiagramCanvasController {
                 if (selectedElement instanceof UseCaseActor) {
                     UseCaseActor actor = (UseCaseActor) selectedElement;
                     showActorDetails(actor);
+                } else if (selectedElement instanceof UseCase) {
+                    UseCase useCase = (UseCase) selectedElement;
+                    showUseCasdeDetails(useCase);
                 }
             } else {
 
             }
         }
+    }
+
+    private void showUseCasdeDetails(UseCase useCase) {
+        Stage stage = new Stage();
+        stage.setTitle("UseCase Details");
+        VBox layout = new VBox(10);
+        layout.setPadding(new Insets(10));
+
+        Label nameLabel = new Label("UseCase Name:");
+        TextField nameField = new TextField(useCase.getName());
+
+        Button submitButton = new Button("Submit");
+        submitButton.setOnAction(e -> {
+            String newName = nameField.getText();
+            useCase.setName(newName);
+            reDrawCanvas();
+            stage.close();
+        });
+
+        layout.getChildren().addAll(nameLabel, nameField, submitButton);
+
+        Scene scene = new Scene(layout, 300, 150);
+        stage.setScene(scene);
+        stage.show();
     }
 
     private void showActorDetails(UseCaseActor actor) {
@@ -106,9 +126,9 @@ public class UseCaseDiagramCanvasController {
         Button submitButton = new Button("Submit");
         submitButton.setOnAction(e -> {
             String newName = nameField.getText();
-            actor.setName(newName); // Update the actor's name
-            reDrawCanvas(); // Redraw the canvas to reflect the changes
-            stage.close(); // Close the form window
+            actor.setName(newName);
+            reDrawCanvas();
+            stage.close();
         });
 
         // Add the components to the layout
@@ -179,64 +199,62 @@ public class UseCaseDiagramCanvasController {
         UseCaseActor actor = new UseCaseActor(initial);
         double size = 50.0;
 
+        // Load and convert SVG image to PNG (code unchanged)
         String svgFilePath = "C:\\Users\\ahmad\\IdeaProjects\\javaproject\\src\\main\\resources\\com\\boota\\javaproject\\actor.svg";
-
         Image svgImage = null;
         try {
             File svgFile = new File(svgFilePath);
             File pngFile = File.createTempFile("temp-actor", ".png");
-
             TranscoderInput inputSvgImage = new TranscoderInput(new FileInputStream(svgFile));
             TranscoderOutput outputPngImage = new TranscoderOutput(new FileOutputStream(pngFile));
-
             PNGTranscoder transcoder = new PNGTranscoder();
             transcoder.addTranscodingHint(PNGTranscoder.KEY_WIDTH, (float) size * 2);
             transcoder.addTranscodingHint(PNGTranscoder.KEY_HEIGHT, (float) size * 4);
             transcoder.transcode(inputSvgImage, outputPngImage);
             svgImage = new Image(pngFile.toURI().toString());
-
             pngFile.deleteOnExit();
         } catch (Exception e) {
             e.printStackTrace();
         }
 
+        // Create VBox for Actor
         ImageView svgImageView = new ImageView(svgImage);
         svgImageView.setFitWidth(size);
         svgImageView.setPreserveRatio(true);
 
         Label actorNameLabel = new Label(actor.getName());
         actorNameLabel.setTextFill(javafx.scene.paint.Color.BLACK);
+
         VBox actorBox = new VBox(5);
         actorBox.setLayoutX(initial.getX());
         actorBox.setLayoutY(initial.getY());
         actorBox.setAlignment(Pos.CENTER);
         actorBox.getChildren().addAll(svgImageView, actorNameLabel);
-        canvasPane.getChildren().add(actorBox);
-        actors.add(actor);
-        elementMap.put(initial, actor);
-    }
 
+        canvasPane.getChildren().add(actorBox);
+
+
+        elementMap.put(actorBox, actor);
+        actors.add(actor);
+    }
 
     public void reDrawActor(UseCaseActor actor) {
         activeTool = null;
         double size = 50.0;
 
+        // Load and convert SVG image to PNG (code unchanged)
         String svgFilePath = "C:\\Users\\ahmad\\IdeaProjects\\javaproject\\src\\main\\resources\\com\\boota\\javaproject\\actor.svg";
-
         Image svgImage = null;
         try {
             File svgFile = new File(svgFilePath);
             File pngFile = File.createTempFile("temp-actor", ".png");
-
             TranscoderInput inputSvgImage = new TranscoderInput(new FileInputStream(svgFile));
             TranscoderOutput outputPngImage = new TranscoderOutput(new FileOutputStream(pngFile));
-
             PNGTranscoder transcoder = new PNGTranscoder();
             transcoder.addTranscodingHint(PNGTranscoder.KEY_WIDTH, (float) size * 2);
             transcoder.addTranscodingHint(PNGTranscoder.KEY_HEIGHT, (float) size * 4);
             transcoder.transcode(inputSvgImage, outputPngImage);
             svgImage = new Image(pngFile.toURI().toString());
-
             pngFile.deleteOnExit();
         } catch (Exception e) {
             e.printStackTrace();
@@ -248,27 +266,90 @@ public class UseCaseDiagramCanvasController {
 
         Label actorNameLabel = new Label(actor.getName());
         actorNameLabel.setTextFill(javafx.scene.paint.Color.BLACK);
+
         VBox actorBox = new VBox(5);
         actorBox.setLayoutX(actor.getInitial().getX());
         actorBox.setLayoutY(actor.getInitial().getY());
         actorBox.setAlignment(Pos.CENTER);
         actorBox.getChildren().addAll(svgImageView, actorNameLabel);
+
         canvasPane.getChildren().add(actorBox);
+
+
+        elementMap.put(actorBox, actor);
         actors.add(actor);
-        elementMap.put(actor.getInitial(), actor);
     }
 
-    public void drawUseCase(Point initial)  {
+    public void drawUseCase(Point initial) {
         activeTool = null;
         UseCase useCase = new UseCase(initial);
         useCases.add(useCase);
-        elementMap.put(initial, useCase); // Add to map
 
+        StackPane useCasePane = new StackPane();
+        useCasePane.setLayoutX(initial.getX());
+        useCasePane.setLayoutY(initial.getY());
+
+        Ellipse ellipse = new Ellipse();
+        ellipse.setRadiusX(20);
+        ellipse.setRadiusY(20);
+        ellipse.setFill(Color.WHITE);
+        ellipse.setStroke(Color.BLACK);
+        ellipse.setStrokeWidth(2);
+
+        Text text = new Text(useCase.getName());
+        text.setFill(Color.BLACK); // Text color
+        text.setStyle("-fx-font-size: 14px; -fx-font-weight: bold;");
+
+        text.boundsInLocalProperty().addListener((obs, oldBounds, newBounds) -> {
+            double textWidth = newBounds.getWidth();
+            double textHeight = newBounds.getHeight();
+
+            ellipse.setRadiusX(Math.max(50, textWidth / 2 + 20)); // Ensure a minimum size
+            ellipse.setRadiusY(Math.max(30, textHeight / 2 + 20));
+        });
+
+        useCasePane.getChildren().addAll(ellipse, text);
+        canvasPane.getChildren().add(useCasePane);
+
+        elementMap.put(useCasePane, useCase);
+        useCases.add(useCase);
+    }
+
+    public void reDrawUseCase(UseCase useCase) {
+        activeTool = null;
+
+        StackPane useCasePane = new StackPane();
+        useCasePane.setLayoutX(useCase.getInitialpoint().getX());
+        useCasePane.setLayoutY(useCase.getInitialpoint().getY());
+
+        Ellipse ellipse = new Ellipse();
+        ellipse.setRadiusX(100);
+        ellipse.setRadiusY(50);
+        ellipse.setFill(Color.WHITE);
+        ellipse.setStroke(Color.BLACK);
+        ellipse.setStrokeWidth(2);
+
+        Text text = new Text(useCase.getName());
+        text.setFill(Color.BLACK); // Text color
+        text.setStyle("-fx-font-size: 14px; -fx-font-weight: bold;");
+
+        text.boundsInLocalProperty().addListener((obs, oldBounds, newBounds) -> {
+            double textWidth = newBounds.getWidth();
+            double textHeight = newBounds.getHeight();
+
+            ellipse.setRadiusX(Math.max(50, textWidth / 2 + 20));
+            ellipse.setRadiusY(Math.max(30, textHeight / 2 + 20));
+        });
+
+        useCasePane.getChildren().addAll(ellipse, text);
+        canvasPane.getChildren().add(useCasePane);
+
+        elementMap.put(useCasePane, useCase);
     }
 
     public void drawAssociation(Point initial, Point finalPoint) {
         activeTool = null;
-    }
+            }
 
     public void drawInclude(Point initial, Point finalPoint) {
         activeTool = null;
@@ -283,11 +364,20 @@ public class UseCaseDiagramCanvasController {
     }
 
     private Object findElementNearPoint(Point point) {
-        double tolerance = 10.0; // Define a tolerance range for selection
-        for (Map.Entry<Point, Object> entry : elementMap.entrySet()) {
-            Point elementPoint = entry.getKey();
-            if (point.distance(elementPoint) <= tolerance) {
-                return entry.getValue();
+        for (Map.Entry<Node, Object> entry : elementMap.entrySet()) {
+            if (entry.getKey() instanceof VBox) {
+                VBox vbox = (VBox) entry.getKey();
+                Bounds bounds = vbox.getBoundsInParent();
+                if (bounds.contains(point.getX(), point.getY())) {
+                    return entry.getValue();
+                }
+            }
+            if (entry.getKey() instanceof StackPane) {
+                StackPane stackPane = (StackPane) entry.getKey();
+                Bounds bounds = stackPane.getBoundsInParent();
+                if (bounds.contains(point.getX(), point.getY())) {
+                    return entry.getValue();
+                }
             }
         }
         return null;
@@ -295,16 +385,15 @@ public class UseCaseDiagramCanvasController {
 
     public void reDrawCanvas(){
         List<UseCaseActor> actorsCopy = new ArrayList<>(actors);
-canvasPane.getChildren().clear();
+        List<UseCase> useCasesCopy = new ArrayList<>(useCases);
+        canvasPane.getChildren().clear();
 
-
-            // Loop to draw actors
         for (UseCaseActor actor : actorsCopy) {
             reDrawActor(actor);
         }
-//        for (UseCaseActor actor : actors) {
-//            drawActor(actor.getInitial());
-//        }
+        for (UseCase useCase : useCasesCopy) {
+            reDrawUseCase(useCase);
+       }
 //        for (UseCaseAssociation association : associations) {
 //            drawAssociation(association.getStart(), association.getEnd());
 //        }
