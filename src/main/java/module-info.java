@@ -10,6 +10,7 @@ module com.boota.javaproject {
     requires org.kordamp.bootstrapfx.core;
     requires eu.hansolo.tilesfx;
     requires javafx.swing;
+    requires batik.all;
 
     opens com.boota.javaproject to javafx.fxml;
     exports com.boota.javaproject;
