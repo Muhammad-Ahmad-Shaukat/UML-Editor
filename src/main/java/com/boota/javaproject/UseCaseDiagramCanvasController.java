@@ -401,15 +401,6 @@ public class UseCaseDiagramCanvasController {
         gc.strokeLine(x.getX(), y.getY(), x.getX(), y.getY());
     }
 
-    private Node getNodeForObject(Object obj) {
-        for (Map.Entry<Node, Object> entry : elementMap.entrySet()) {
-            if (entry.getValue().equals(obj)) {
-                return entry.getKey();
-            }
-        }
-        return null;
-    }
-
 
     public void drawInclude(Point initial, Point finalPoint) {
         activeTool = null;
