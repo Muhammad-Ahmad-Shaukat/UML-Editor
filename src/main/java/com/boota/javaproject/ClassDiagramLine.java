@@ -1,13 +1,13 @@
 package com.boota.javaproject;
 
-public class Line {
+public class ClassDiagramLine {
 
     Point start;
     Point end;
     Class initialClass;
     Class finalClass;
 
-    public Line(Class initialClass, Class finalClass, Point end, Point start) {
+    public ClassDiagramLine(Class initialClass, Class finalClass, Point end, Point start) {
         this.initialClass = initialClass;
         this.finalClass = finalClass;
         this.end = end;
