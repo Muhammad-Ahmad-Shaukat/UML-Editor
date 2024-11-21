@@ -43,14 +43,11 @@ public class Attribute {
 
     @Override
     public String toString() {
-        switch (accessModifier.toLowerCase()) {
-            case "private":
-                return "-" + name + " : " + dataType;
-            case "public":
-                return "+" + name + " : " + dataType;
-            default:
-                return "#" + name + " : " + dataType;
-        }
+        return switch (accessModifier.toLowerCase()) {
+            case "private" -> "-" + name + " : " + dataType;
+            case "public" -> "+" + name + " : " + dataType;
+            default -> "#" + name + " : " + dataType;
+        };
     }
 
     public void print() {
