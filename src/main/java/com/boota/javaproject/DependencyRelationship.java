@@ -4,32 +4,16 @@ public class DependencyRelationship {
     private String dependencyType;
     private UseCase startUseCase;
     private UseCase endUseCase;
-    private Point startPoint;
-    private Point endPoint;
 
-    public DependencyRelationship(UseCase startUseCase, UseCase endUseCase, String dependencyType, Point startPoint, Point endPoint) {
+
+    public DependencyRelationship(UseCase startUseCase, UseCase endUseCase, String dependencyType) {
         this.startUseCase = startUseCase;
         this.endUseCase = endUseCase;
         this.dependencyType = dependencyType;
-        this.startPoint = startPoint;
-        this.endPoint = endPoint;
     }
 
-    public Point getStartPoint() {
-        return startPoint;
-    }
 
-    public void setStartPoint(Point startPoint) {
-        this.startPoint = startPoint;
-    }
 
-    public Point getEndPoint() {
-        return endPoint;
-    }
-
-    public void setEndPoint(Point endPoint) {
-        this.endPoint = endPoint;
-    }
 
     public String getDependencyType() {
         return dependencyType;
@@ -55,20 +39,20 @@ public class DependencyRelationship {
         this.endUseCase = endUseCase;
     }
 
-    public boolean isPointOnLine(Point point) {
-        double tolerance = 5.0;
-        double lineLength = Math.sqrt(Math.pow(endPoint.getX() - startPoint.getX(), 2) + Math.pow(endPoint.getY() - startPoint.getY(), 2));
-        double area = Math.abs((point.getX() - startPoint.getX()) * (endPoint.getY() - startPoint.getY()) -
-                (point.getY() - startPoint.getY()) * (endPoint.getX() - startPoint.getX()));
-        double distanceFromLine = area / lineLength;
-
-        if (distanceFromLine > tolerance) {
-            return false;
-        }
-        return (point.getX() >= Math.min(startPoint.getX(), endPoint.getX()) &&
-                point.getX() <= Math.max(startPoint.getX(), endPoint.getX()) &&
-                point.getY() >= Math.min(startPoint.getY(), endPoint.getY()) &&
-                point.getY() <= Math.max(startPoint.getY(), endPoint.getY()));
-    }
+//    public boolean isPointOnLine(Point point) {
+//        double tolerance = 5.0;
+//        double lineLength = Math.sqrt(Math.pow(endPoint.getX() - startPoint.getX(), 2) + Math.pow(endPoint.getY() - startPoint.getY(), 2));
+//        double area = Math.abs((point.getX() - startPoint.getX()) * (endPoint.getY() - startPoint.getY()) -
+//                (point.getY() - startPoint.getY()) * (endPoint.getX() - startPoint.getX()));
+//        double distanceFromLine = area / lineLength;
+//
+//        if (distanceFromLine > tolerance) {
+//            return false;
+//        }
+//        return (point.getX() >= Math.min(startPoint.getX(), endPoint.getX()) &&
+//                point.getX() <= Math.max(startPoint.getX(), endPoint.getX()) &&
+//                point.getY() >= Math.min(startPoint.getY(), endPoint.getY()) &&
+//                point.getY() <= Math.max(startPoint.getY(), endPoint.getY()));
+//    }
 }
 
