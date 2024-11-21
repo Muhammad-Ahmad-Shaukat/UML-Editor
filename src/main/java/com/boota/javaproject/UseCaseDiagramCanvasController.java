@@ -1,5 +1,6 @@
 package com.boota.javaproject;
 
+import eu.hansolo.toolboxfx.geom.Poi;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXML;
 import javafx.geometry.Bounds;
@@ -21,9 +22,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Ellipse;
-import javafx.scene.shape.Line;
-import javafx.scene.shape.Rectangle;
+import javafx.scene.shape.*;
 import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
@@ -31,6 +30,7 @@ import org.apache.batik.transcoder.TranscoderInput;
 import org.apache.batik.transcoder.TranscoderOutput;
 import org.apache.batik.transcoder.image.PNGTranscoder;
 import javax.imageio.ImageIO;
+import java.awt.event.MouseAdapter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -58,77 +58,187 @@ public class UseCaseDiagramCanvasController {
     private Point initialPoint = null;
 
     private Map<Node, Object> elementMap = new HashMap<>();
+    private Object currentlySelectedElement = null;
 
+    private Circle moveIcon; // Circle to represent the move icon
 
     @FXML
     public void initialize() {
         canvas = new Canvas(canvasPane.getWidth(), canvasPane.getHeight());
         gc = canvas.getGraphicsContext2D();
         canvasPane.getChildren().add(canvas);
-
         canvas.widthProperty().bind(canvasPane.widthProperty());
         canvas.heightProperty().bind(canvasPane.heightProperty());
-
         canvasPane.setOnMouseMoved(this::trackMouseCoordinates);
         canvasPane.setOnMousePressed(this::handleMousePress);
         canvasPane.setOnMouseReleased(this::handleMouseRelease);
-        canvasPane.setOnMouseClicked(this::handleDoubleClick);
-    }
+        canvasPane.setOnMouseClicked(this::handleMouseClick);
 
-    private void handleMousePress(MouseEvent event) {
-        if (activeTool != null) {
-            initialPoint = trackMouseCoordinates(event);
-        }
-    }
-
-    private void handleDoubleClick(MouseEvent event) {
-        if (event.getClickCount() == 2) {
-            Point clickPoint = trackMouseCoordinates(event);
-            Object selectedElement = findElementNearPoint(clickPoint);
-
-            if (selectedElement != null) {
-                if (selectedElement instanceof UseCaseActor) {
-                    UseCaseActor actor = (UseCaseActor) selectedElement;
-                    showActorDetails(actor);
-                } else if (selectedElement instanceof UseCase) {
-                    UseCase useCase = (UseCase) selectedElement;
-                    showUseCasdeDetails(useCase);
-                }
-            } else {
-
-            }
-        }
-    }
-
-
-
-    private void handleMouseRelease(MouseEvent event) {
-        if (activeTool != null && initialPoint != null) {
-            Point finalPoint = trackMouseCoordinates(event);
-
-            if ("Actor".equals(activeTool)) {
-                drawActor(initialPoint);
-            } else if ("Exclude".equals(activeTool)) {
-                drawExclude(initialPoint, finalPoint);
-            } else if ("Include".equals(activeTool)) {
-                drawInclude(initialPoint, finalPoint);
-            } else if ("UseCase".equals(activeTool)) {
-                drawUseCase(initialPoint);
-            } else if ("UseCaseAssociation".equals(activeTool)) {
-                drawAssociation(initialPoint, finalPoint);
-            } else if ("BoundaryBox".equals(activeTool)) {
-                drawBoundaryBox(initialPoint);
-            }
-
-            initialPoint = null;
-        }
+        // Initialize the move icon
+        moveIcon = new Circle(5); // Small circle with radius 5
+        moveIcon.setVisible(false); // Initially hidden
+        moveIcon.setStyle("-fx-fill: blue; -fx-stroke: black;"); // Style the icon
+        canvasPane.getChildren().add(moveIcon);
+        moveIcon.setOnMousePressed(this::startMove);
+        moveIcon.setOnMouseDragged(this::dragMove);
+        moveIcon.setOnMouseReleased(this::endMove);
     }
 
     private Point trackMouseCoordinates(MouseEvent event) {
         double x = event.getX();
         double y = event.getY();
-        return new Point(x, y);
+        return new Point(x, y); // Return the coordinates as a Point object
     }
+
+    private void handleMouseClick(MouseEvent event) {
+        Point clickPoint = trackMouseCoordinates(event);
+
+        if (activeTool != null) {
+            return; // Skip if a tool is active
+        }
+
+        Object selectedElement = findElementNearPoint(clickPoint);
+
+        if (event.getClickCount() == 2) { // Double click to open details
+            if (selectedElement != null) {
+                currentlySelectedElement = selectedElement;
+                highlightElement(currentlySelectedElement);
+                showDetailsIfSelected();
+            }
+        } else if (event.getClickCount() == 1) { // Single click
+            if (selectedElement != null) {
+                if (selectedElement == currentlySelectedElement) { // Same element selected
+                    // Show the move icon at the element's position
+                    Point elementPoint = getElementInitialPoint(selectedElement);
+                    moveIcon.setCenterX(elementPoint.getX());
+                    moveIcon.setCenterY(elementPoint.getY());
+                    moveIcon.setVisible(true);
+                } else {
+                    moveIcon.setVisible(false); // Hide the icon if different element clicked
+                    currentlySelectedElement = selectedElement; // Set new element as selected
+                }
+            } else {
+                moveIcon.setVisible(false); // Hide if no element clicked
+            }
+        }
+    }
+
+    private Point getElementInitialPoint(Object element) {
+        if (element instanceof UseCaseActor) {
+            UseCaseActor actor = (UseCaseActor) element;
+            return actor.getInitial(); // Get initial point for UseCaseActor
+        } else if (element instanceof UseCaseSystemBoundaryBox) {
+            UseCaseSystemBoundaryBox box = (UseCaseSystemBoundaryBox) element;
+            return box.getInitialPoint(); // Get initial point for UseCaseSystemBoundaryBox
+        } else if (element instanceof UseCase) {
+            UseCase useCase = (UseCase) element;
+            return useCase.getInitialpoint(); // Get initial point for UseCase
+        } else {
+            return null; // Return null if element type doesn't match any expected type
+        }
+    }
+
+    private void handleMousePress(MouseEvent event) {
+        initialPoint = trackMouseCoordinates(event); // Store initial click point
+    }
+
+    private void handleMouseRelease(MouseEvent event) {
+        Point releasePoint = trackMouseCoordinates(event);
+
+        if (activeTool == null && initialPoint != null) {
+            // Handle moving an existing element
+            Object tempElement = findElementNearPoint(initialPoint);
+
+            if (tempElement != null) {
+                if (tempElement instanceof UseCaseActor) {
+                    UseCaseActor actor = (UseCaseActor) tempElement;
+                    actors.remove(actor);
+                    actor.setInitial(releasePoint); // Update position
+                    actors.add(actor);
+                } else if (tempElement instanceof UseCase) {
+                    UseCase useCase = (UseCase) tempElement;
+                    useCases.remove(useCase);
+                    useCase.setInitialpoint(releasePoint); // Update position
+                    useCases.add(useCase);
+                } else if (tempElement instanceof UseCaseSystemBoundaryBox) {
+                    UseCaseSystemBoundaryBox boundaryBox = (UseCaseSystemBoundaryBox) tempElement;
+                    boundaryBoxes.remove(boundaryBox);
+                    boundaryBox.setInitialPoint(releasePoint); // Update position
+                    boundaryBoxes.add(boundaryBox);
+                }
+                reDrawCanvas(); // Redraw the canvas after moving the element
+            }
+        } else if (activeTool != null && initialPoint != null) {
+            // Handle drawing new elements
+            if ("Actor".equals(activeTool)) {
+                drawActor(initialPoint);
+            } else if ("Exclude".equals(activeTool)) {
+                drawExclude(initialPoint, releasePoint);
+            } else if ("Include".equals(activeTool)) {
+                drawInclude(initialPoint, releasePoint);
+            } else if ("UseCase".equals(activeTool)) {
+                drawUseCase(initialPoint);
+            } else if ("UseCaseAssociation".equals(activeTool)) {
+                drawAssociation(initialPoint, releasePoint);
+            } else if ("BoundaryBox".equals(activeTool)) {
+                drawBoundaryBox(initialPoint);
+            }
+        }
+        initialPoint = null; // Reset initial point after action
+    }
+
+    private void startMove(MouseEvent event) {
+        initialPoint = new Point(event.getX(), event.getY()); // Start moving the element
+    }
+
+    private void dragMove(MouseEvent event) {
+        double x = event.getX();
+        double y = event.getY();
+        moveIcon.setCenterX(x); // Update move icon's position as mouse is dragged
+        moveIcon.setCenterY(y);
+    }
+
+    private void endMove(MouseEvent event) {
+        Point newPoint = new Point(event.getX(), event.getY()); // Final drop position
+
+        if (currentlySelectedElement instanceof UseCaseActor) {
+            UseCaseActor actor = (UseCaseActor) currentlySelectedElement;
+            actors.remove(actor);
+            actor.setInitial(newPoint);
+            actors.add(actor);
+        } else if (currentlySelectedElement instanceof UseCase) {
+            UseCase useCase = (UseCase) currentlySelectedElement;
+            useCases.remove(useCase);
+            useCase.setInitialpoint(newPoint);
+            useCases.add(useCase);
+        } else if (currentlySelectedElement instanceof UseCaseSystemBoundaryBox) {
+            UseCaseSystemBoundaryBox boundaryBox = (UseCaseSystemBoundaryBox) currentlySelectedElement;
+            boundaryBoxes.remove(boundaryBox);
+            boundaryBox.setInitialPoint(newPoint);
+            boundaryBoxes.add(boundaryBox);
+        }
+
+        moveIcon.setVisible(false); // Hide the icon after moving the element
+        reDrawCanvas(); // Redraw the canvas after the move
+    }
+
+    private void showDetailsIfSelected() {
+        if (currentlySelectedElement instanceof UseCaseActor) {
+            showActorDetails((UseCaseActor) currentlySelectedElement);
+        } else if (currentlySelectedElement instanceof UseCase) {
+            showUseCaseDetails((UseCase) currentlySelectedElement);
+        } else if (currentlySelectedElement instanceof UseCaseSystemBoundaryBox) {
+            showBoundaryBoxDetails((UseCaseSystemBoundaryBox) currentlySelectedElement);
+        }
+    }
+
+    private void highlightElement(Object element) {
+        // Placeholder for any visual highlighting logic you might want to add
+    }
+
+    public void showBoundaryBoxDetails(UseCaseSystemBoundaryBox box){}
+
+
 
     public void handleActorClick() {
         activeTool = "Actor";
@@ -192,9 +302,27 @@ public class UseCaseDiagramCanvasController {
             showWarning("No Use Case Found", "No Actor or Use Case Found at Final Point");
             return;
         }
-
+        UseCaseAssociation association = new UseCaseAssociation(initial,finalPoint,associatedUseCase,associatedActor);
+        associations.add(association);
         drawLine(associatedActor.getInitial(),associatedUseCase.getInitialpoint());
+    }
 
+    private void reDrawAssociation(UseCaseAssociation association){
+        activeTool = null;
+
+        Object objectX = findElementNearPoint(association.getActor().getInitial());
+        Object objectY = findElementNearPoint(association.getUseCase().getInitialpoint());
+
+        if (objectX == null) {
+            return;
+        }
+        else if (objectY == null) {
+            return;
+        }
+        if (objectX instanceof UseCaseActor && objectY instanceof UseCase) {
+            associations.add(association);
+            drawLine(association.getActor().getInitial(),association.getUseCase().getInitialpoint());
+        }
     }
 
     private void showWarning(String title, String message) {
@@ -248,11 +376,17 @@ public class UseCaseDiagramCanvasController {
 
         }else if (startUseCase == null){
             showWarning("Use Case Not Found","Initial Point Does Not Have Use Case");
+            return;
         } else if (endUseCase == null) {
             showWarning("Use Case Found","Final Point Does Not Have Use Case");
+            return;
         }else{
             showWarning("Error","No Use Case Found");
+            return;
         }
+        DependencyRelationship include = new DependencyRelationship(startUseCase,endUseCase,"include");
+        includeRelations.add(include);
+        drawDottedLineWithArrow(initialPoint,finalPoint);
     }
 
     public void handleSnapshot() {
@@ -298,11 +432,17 @@ public class UseCaseDiagramCanvasController {
 
         }else if (startUseCase == null){
             showWarning("Use Case Not Found","Initial Point Does Not Have Use Case");
+            return;
         } else if (endUseCase == null) {
             showWarning("Use Case Found","Final Point Does Not Have Use Case");
+            return;
         }else{
             showWarning("Error","No Use Case Found");
+            return;
         }
+        DependencyRelationship exclude = new DependencyRelationship(startUseCase,endUseCase,"exclude");
+        excludeRelations.add(exclude);
+        drawDottedLineWithArrow(initialPoint,finalPoint);
     }
 
     public void drawBoundaryBox(Point initial) {
@@ -518,9 +658,10 @@ public class UseCaseDiagramCanvasController {
         canvasPane.getChildren().add(useCasePane);
 
         elementMap.put(useCasePane, useCase);
+        useCases.add(useCase);
     }
 
-    private void showUseCasdeDetails(UseCase useCase) {
+    private void showUseCaseDetails(UseCase useCase) {
         Stage stage = new Stage();
         stage.setTitle("UseCase Details");
         VBox layout = new VBox(10);
@@ -574,6 +715,7 @@ public class UseCaseDiagramCanvasController {
         List<UseCaseActor> actorsCopy = new ArrayList<>(actors);
         List<UseCase> useCasesCopy = new ArrayList<>(useCases);
         List<UseCaseSystemBoundaryBox> boundaryBoxesCopy = new ArrayList<>(boundaryBoxes);
+        List<UseCaseAssociation> associationsCopy = new ArrayList<>(associations);
         clearCanvas();
 
         for (UseCaseActor actor : actorsCopy) {
@@ -585,17 +727,32 @@ public class UseCaseDiagramCanvasController {
         for (UseCaseSystemBoundaryBox boundaryBox : boundaryBoxesCopy) {
             reDrawBoundaryBox(boundaryBox);
         }
-//        for (UseCaseAssociation association : associations) {
-//            drawAssociation(association.getStart(), association.getEnd());
-//        }
-//        for (UseCase useCase : useCases) {
-//            drawUseCase(useCase.getInitialpoint());
-//        }
-//        for (DependencyRelationship includeRelation : includeRelations) {
-//            drawInclude(includeRelation.getStartPoint(), includeRelation.getEndPoint());
-//        }
-//        for (DependencyRelationship excludeRelation : excludeRelations) {
-//            drawExclude(excludeRelation.getStartPoint(), excludeRelation.getEndPoint());
-//        }
+        for (UseCaseAssociation association : associationsCopy) {
+            reDrawAssociation(association);
+        }
+    }
+    public void drawDottedLineWithArrow(Point startPoint, Point endPoint) {
+
+        Line dottedLine = new Line(startPoint.getX(), startPoint.getY(), endPoint.getX(), endPoint.getY());
+        dottedLine.setStroke(Color.BLACK);
+        dottedLine.getStrokeDashArray().addAll(10.0, 5.0); // Define the dash pattern
+        dottedLine.setStrokeWidth(2);
+        double angle = Math.atan2(endPoint.getY() - startPoint.getY(), endPoint.getX() - startPoint.getX());
+        double arrowLength = 10;
+
+        double x1 = endPoint.getX() - arrowLength * Math.cos(angle - Math.PI / 6);
+        double y1 = endPoint.getY() - arrowLength * Math.sin(angle - Math.PI / 6);
+        double x2 = endPoint.getX() - arrowLength * Math.cos(angle + Math.PI / 6);
+        double y2 = endPoint.getY() - arrowLength * Math.sin(angle + Math.PI / 6);
+
+        Polygon arrowHead = new Polygon();
+        arrowHead.getPoints().addAll(
+                endPoint.getX(), endPoint.getY(),
+                x1, y1,
+                x2, y2
+        );
+        arrowHead.setFill(Color.BLACK);
+        canvasPane.getChildren().addAll(dottedLine, arrowHead);
     }
 }
+
