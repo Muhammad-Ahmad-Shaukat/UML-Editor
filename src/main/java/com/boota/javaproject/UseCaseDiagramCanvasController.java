@@ -69,6 +69,7 @@ public class UseCaseDiagramCanvasController {
         canvasPane.setOnMouseReleased(this::handleMouseRelease);
         canvasPane.setOnMouseClicked(this::handleMouseClick);
         canvasPane.setOnMouseDragged(this::handleMouseDrag);
+
     }
 
     private Point trackMouseCoordinates(MouseEvent event) {
