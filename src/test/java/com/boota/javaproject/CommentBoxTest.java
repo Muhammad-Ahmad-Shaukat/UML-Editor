@@ -1,5 +1,7 @@
 package com.boota.javaproject;
 
+import ClassDiagram.CommentBox;
+import ClassDiagram.Point;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

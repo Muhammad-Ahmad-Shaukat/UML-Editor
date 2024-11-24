@@ -1,4 +1,4 @@
-package com.boota.javaproject;
+package UseCaseDiagram;
 
 public class DependencyRelationship {
     private String dependencyType;

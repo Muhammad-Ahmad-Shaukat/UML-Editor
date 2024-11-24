@@ -1,5 +1,6 @@
-package com.boota.javaproject;
+package UseCaseDiagram;
 
+import ClassDiagram.Point;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXML;
 import javafx.geometry.Bounds;

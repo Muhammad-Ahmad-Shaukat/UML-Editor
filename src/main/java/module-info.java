@@ -14,4 +14,8 @@ module com.boota.javaproject {
 
     opens com.boota.javaproject to javafx.fxml;
     exports com.boota.javaproject;
+    exports UseCaseDiagram;
+    opens UseCaseDiagram to javafx.fxml;
+    exports ClassDiagram;
+    opens ClassDiagram to javafx.fxml;
 }

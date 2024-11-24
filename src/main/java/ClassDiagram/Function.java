@@ -1,7 +1,6 @@
-package com.boota.javaproject;
+package ClassDiagram;
 
 import java.util.ArrayList;
-import java.util.Locale;
 import java.util.stream.Collectors;
 
 public class Function {
