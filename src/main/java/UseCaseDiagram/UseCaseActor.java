@@ -1,6 +1,6 @@
-package com.boota.javaproject;
+package UseCaseDiagram;
 
-import eu.hansolo.toolboxfx.geom.Poi;
+import ClassDiagram.Point;
 
 public class UseCaseActor {
     private String name;

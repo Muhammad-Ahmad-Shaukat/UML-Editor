@@ -1,5 +1,9 @@
 package com.boota.javaproject;
 
+import ClassDiagram.Attribute;
+import ClassDiagram.Class;
+import ClassDiagram.Function;
+import ClassDiagram.Point;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -10,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class ClassTest {
 
-    private Class classUnderTest;
+    private ClassDiagram.Class classUnderTest;
     private Attribute testAttribute;
     private Function testFunction;
     private Point testPoint;

@@ -1,4 +1,4 @@
-package com.boota.javaproject;
+package ClassDiagram;
 
 import java.util.ArrayList;
 

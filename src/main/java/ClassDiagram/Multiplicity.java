@@ -1,4 +1,4 @@
-package com.boota.javaproject;
+package ClassDiagram;
 
 public class Multiplicity {
     Double start;

@@ -1,4 +1,4 @@
-package com.boota.javaproject;
+package ClassDiagram;
 
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
@@ -33,7 +33,7 @@ public class ClassDiagramCanvasController {
 
     private Canvas canvas;
     private GraphicsContext gc;
-    private ArrayList<Class> classes = new ArrayList<>();
+    private ArrayList<ClassDiagram.Class> classes = new ArrayList<>();
     private ArrayList<Association> associations = new ArrayList<>();
     private VBox selectedClassBox = null;
 
@@ -70,7 +70,7 @@ public class ClassDiagramCanvasController {
 
             // If the class is stored in a data structure, remove it
             Object associatedElement = elementMap.get(selectedClassBox);
-            if (associatedElement instanceof Class) {
+            if (associatedElement instanceof ClassDiagram.Class) {
                 classes.remove(associatedElement);
             }
 
@@ -151,7 +151,7 @@ public class ClassDiagramCanvasController {
         activeTool = null;
 
         Point initialPoint = new Point(x, y);
-        Class myClass = new Class(initialPoint);
+        ClassDiagram.Class myClass = new ClassDiagram.Class(initialPoint);
 
         double initialWidth = 120;
 
@@ -205,8 +205,8 @@ public class ClassDiagramCanvasController {
 
     private void showElementOptions(Object element) {
 
-        if (element instanceof Class) {
-            Class clazz = (Class) element;
+        if (element instanceof ClassDiagram.Class) {
+            ClassDiagram.Class clazz = (ClassDiagram.Class) element;
 
                 showClassDetails(clazz);
 
@@ -235,8 +235,8 @@ public class ClassDiagramCanvasController {
         ScrollPane scrollPane = new ScrollPane(detailBox);
         scrollPane.setFitToWidth(true); // Ensures scrollpane resizes with content
 
-        if (element instanceof Class) {
-            Class clazz = (Class) element;
+        if (element instanceof ClassDiagram.Class) {
+            ClassDiagram.Class clazz = (ClassDiagram.Class) element;
 
             // Class Name Editing
             detailBox.getChildren().add(new Label("Class Name:"));
@@ -281,12 +281,12 @@ public class ClassDiagramCanvasController {
         // Create and set the scene
         Scene scene = new Scene(scrollPane, 400, 300); // Adjusted width and height
         detailStage.setScene(scene);
-        detailStage.setTitle("Edit Class: " + ((Class) element).getClassName());
+        detailStage.setTitle("Edit Class: " + ((ClassDiagram.Class) element).getClassName());
         detailStage.show();
     }
 
 
-    private void updateAttributesBox(Class clazz, VBox attributesBox) {
+    private void updateAttributesBox(ClassDiagram.Class clazz, VBox attributesBox) {
         attributesBox.getChildren().clear();
         for (Attribute attribute : clazz.getAttributes()) {
             HBox attrBox = new HBox(5);
@@ -294,7 +294,7 @@ public class ClassDiagramCanvasController {
             TextField nameField = new TextField(attribute.getName());
             ComboBox<String> DataTypeBox = new ComboBox<>();
             DataTypeBox.getItems().addAll("String","Int","Double","Float","Boolean");
-            for (Class cl : classes)
+            for (ClassDiagram.Class cl : classes)
             {
                 DataTypeBox.getItems().add(cl.getClassName());
             }
@@ -323,7 +323,7 @@ public class ClassDiagramCanvasController {
         }
     }
 
-    private void updateFunctionsBox(Class clazz, VBox functionsBox) {
+    private void updateFunctionsBox(ClassDiagram.Class clazz, VBox functionsBox) {
         functionsBox.getChildren().clear();
         for (Function function : clazz.getFunctions()) {
             VBox funcBox = new VBox(5);
@@ -404,7 +404,7 @@ public class ClassDiagramCanvasController {
 
     public void redrawcanvas() {
         canvasPane.getChildren().clear();
-        for (Class myClass : classes) {
+        for (ClassDiagram.Class myClass : classes) {
             redrawClass(myClass);
         }
     }

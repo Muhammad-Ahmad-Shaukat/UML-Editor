@@ -4,7 +4,7 @@
 <?import javafx.scene.layout.*?>
 
 <BorderPane xmlns:fx="http://javafx.com/fxml"
-            fx:controller="com.boota.javaproject.UseCaseDiagramCanvasController"
+            fx:controller="UseCaseDiagram.UseCaseDiagramCanvasController"
             stylesheets="@styles.css">
 
     <top>

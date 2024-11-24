@@ -1,4 +1,6 @@
-package com.boota.javaproject;
+package UseCaseDiagram;
+
+import ClassDiagram.Point;
 
 public class UseCaseAssociation {
     private Point start;
