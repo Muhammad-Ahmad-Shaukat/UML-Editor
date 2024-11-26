@@ -40,3 +40,130 @@
   </InitialPoint>
   <Name>Use Case</Name>
 </UseCase>
+<UseCase>
+  <InitialPoint>
+    <x>292.0</x>
+    <y>161.0</y>
+  </InitialPoint>
+  <Name>Use Case</Name>
+</UseCase>
+<UseCase>
+  <InitialPoint>
+    <x>292.0</x>
+    <y>161.0</y>
+  </InitialPoint>
+  <Name>Use Case</Name>
+</UseCase>
+<UseCase>
+  <InitialPoint>
+    <x>771.0</x>
+    <y>161.0</y>
+  </InitialPoint>
+  <Name>Use Case</Name>
+</UseCase>
+<UseCase>
+  <InitialPoint>
+    <x>771.0</x>
+    <y>161.0</y>
+  </InitialPoint>
+  <Name>Use Case</Name>
+</UseCase>
+<UseCaseActor>
+  <Name>Actor</Name>
+  <InitialPoint>
+    <x>66.0</x>
+    <y>131.0</y>
+  </InitialPoint>
+</UseCaseActor>
+<UseCaseAssociation>
+  <StartPoint>
+    <x>97.0</x>
+    <y>174.0</y>
+  </StartPoint>
+  <EndPoint>
+    <x>295.0</x>
+    <y>181.0</y>
+  </EndPoint>
+  <UseCase>
+    <InitialPoint>
+      <x>292.0</x>
+      <y>161.0</y>
+    </InitialPoint>
+    <Name>Use Case</Name>
+  </UseCase>
+  <Actor>
+    <Name>Actor</Name>
+    <InitialPoint>
+      <x>66.0</x>
+      <y>131.0</y>
+    </InitialPoint>
+  </Actor>
+</UseCaseAssociation>
+<DependencyRelationship>
+  <DependencyType>include</DependencyType>
+  <StartUseCase>
+    <InitialPoint>
+      <x>292.0</x>
+      <y>161.0</y>
+    </InitialPoint>
+    <Name>Use Case</Name>
+  </StartUseCase>
+  <EndUseCase>
+    <InitialPoint>
+      <x>292.0</x>
+      <y>161.0</y>
+    </InitialPoint>
+    <Name>Use Case</Name>
+  </EndUseCase>
+</DependencyRelationship>
+<DependencyRelationship>
+  <DependencyType>include</DependencyType>
+  <StartUseCase>
+    <InitialPoint>
+      <x>292.0</x>
+      <y>161.0</y>
+    </InitialPoint>
+    <Name>Use Case</Name>
+  </StartUseCase>
+  <EndUseCase>
+    <InitialPoint>
+      <x>771.0</x>
+      <y>161.0</y>
+    </InitialPoint>
+    <Name>Use Case</Name>
+  </EndUseCase>
+</DependencyRelationship>
+<DependencyRelationship>
+  <DependencyType>exclude</DependencyType>
+  <StartUseCase>
+    <InitialPoint>
+      <x>292.0</x>
+      <y>161.0</y>
+    </InitialPoint>
+    <Name>Use Case</Name>
+  </StartUseCase>
+  <EndUseCase>
+    <InitialPoint>
+      <x>292.0</x>
+      <y>161.0</y>
+    </InitialPoint>
+    <Name>Use Case</Name>
+  </EndUseCase>
+</DependencyRelationship>
+<DependencyRelationship>
+  <DependencyType>exclude</DependencyType>
+  <StartUseCase>
+    <InitialPoint>
+      <x>771.0</x>
+      <y>161.0</y>
+    </InitialPoint>
+    <Name>Use Case</Name>
+  </StartUseCase>
+  <EndUseCase>
+    <InitialPoint>
+      <x>292.0</x>
+      <y>161.0</y>
+    </InitialPoint>
+    <Name>Use Case</Name>
+  </EndUseCase>
+</DependencyRelationship>

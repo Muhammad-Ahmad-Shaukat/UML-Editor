@@ -1,5 +1,8 @@
 package UseCaseDiagram;
 
+import java.io.FileWriter;
+import java.io.IOException;
+
 public class DependencyRelationship {
     private String dependencyType;
     private UseCase startUseCase;
@@ -11,8 +14,6 @@ public class DependencyRelationship {
         this.endUseCase = endUseCase;
         this.dependencyType = dependencyType;
     }
-
-
 
 
     public String getDependencyType() {
@@ -54,5 +55,35 @@ public class DependencyRelationship {
 //                point.getY() >= Math.min(startPoint.getY(), endPoint.getY()) &&
 //                point.getY() <= Math.max(startPoint.getY(), endPoint.getY()));
 //    }
-}
 
+    public void serializedependencyRelationship(String filePath) {
+        try (FileWriter writer = new FileWriter(filePath, true)) { // Append mode
+            writer.write("<DependencyRelationship>\n");
+
+            // Serialize Dependency Type
+            writer.write("  <DependencyType>" + dependencyType + "</DependencyType>\n");
+
+            // Serialize Start UseCase
+            writer.write("  <StartUseCase>\n");
+            writer.write("    <InitialPoint>\n");
+            writer.write("      <x>" + startUseCase.getInitialpoint().getX() + "</x>\n");
+            writer.write("      <y>" + startUseCase.getInitialpoint().getY() + "</y>\n");
+            writer.write("    </InitialPoint>\n");
+            writer.write("    <Name>" + startUseCase.getName() + "</Name>\n");
+            writer.write("  </StartUseCase>\n");
+
+            // Serialize End UseCase
+            writer.write("  <EndUseCase>\n");
+            writer.write("    <InitialPoint>\n");
+            writer.write("      <x>" + endUseCase.getInitialpoint().getX() + "</x>\n");
+            writer.write("      <y>" + endUseCase.getInitialpoint().getY() + "</y>\n");
+            writer.write("    </InitialPoint>\n");
+            writer.write("    <Name>" + endUseCase.getName() + "</Name>\n");
+            writer.write("  </EndUseCase>\n");
+
+            writer.write("</DependencyRelationship>\n");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
