@@ -74,19 +74,41 @@ public class UseCaseAssociation {
     public void serialize(String filePath) {
         try (FileWriter writer = new FileWriter(filePath, true)) { // Append mode
             writer.write("<UseCaseAssociation>\n");
-            writer.write("  <Start Point>\n");
-            writer.write("   <x>"+start.getX()+"</x>");
-            writer.write("   <y>"+start.getY()+"</y>");
-            writer.write("  </Start Point>\n");
-            writer.write("  <End Point>\n");
-            writer.write("   <x>"+end.getX()+"</x>");
-            writer.write("   <y>"+end.getY()+"</y>");
-            writer.write("  </End Point>\n");
-            useCase.serialize("filePath");
-            actor.serializeUseCaseActor("filePath");
+
+            // Serialize Start Point
+            writer.write("  <StartPoint>\n");
+            writer.write("    <x>" + start.getX() + "</x>\n");
+            writer.write("    <y>" + start.getY() + "</y>\n");
+            writer.write("  </StartPoint>\n");
+
+            // Serialize End Point
+            writer.write("  <EndPoint>\n");
+            writer.write("    <x>" + end.getX() + "</x>\n");
+            writer.write("    <y>" + end.getY() + "</y>\n");
+            writer.write("  </EndPoint>\n");
+
+            // Serialize UseCase
+            writer.write("  <UseCase>\n");
+            writer.write("    <InitialPoint>\n");
+            writer.write("      <x>" + useCase.getInitialpoint().getX() + "</x>\n");
+            writer.write("      <y>" + useCase.getInitialpoint().getY() + "</y>\n");
+            writer.write("    </InitialPoint>\n");
+            writer.write("    <Name>" + useCase.getName() + "</Name>\n");
+            writer.write("  </UseCase>\n");
+
+            // Serialize Actor
+            writer.write("  <Actor>\n");
+            writer.write("    <Name>" + actor.getName() + "</Name>\n");
+            writer.write("    <InitialPoint>\n");
+            writer.write("      <x>" + actor.getInitial().getX() + "</x>\n");
+            writer.write("      <y>" + actor.getInitial().getY() + "</y>\n");
+            writer.write("    </InitialPoint>\n");
+            writer.write("  </Actor>\n");
+
             writer.write("</UseCaseAssociation>\n");
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
+
 }

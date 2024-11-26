@@ -18,7 +18,7 @@
             <Button text="Snapshot" onAction="#handleSnapshot"/>
             <Button text="Clear Canvas" onAction="#clearCanvas"/>
             <Button text="Save Diagram" onAction="#serializeUseCaseDiagram"/>
-            <Button text="Upload File" onAction="#deSerializeUseCaseDiagram"/>
+            <Button text="Upload File" onAction="#deserializeUseCaseDiagram"/>
         </HBox>
     </top>
     <center>
