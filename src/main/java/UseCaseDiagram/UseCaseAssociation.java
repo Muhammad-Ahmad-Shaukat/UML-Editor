@@ -2,6 +2,9 @@ package UseCaseDiagram;
 
 import ClassDiagram.Point;
 
+import java.io.FileWriter;
+import java.io.IOException;
+
 public class UseCaseAssociation {
     private Point start;
     private Point end;
@@ -66,5 +69,24 @@ public class UseCaseAssociation {
                 point.getX() <= Math.max(start.getX(), end.getX()) &&
                 point.getY() >= Math.min(start.getY(), end.getY()) &&
                 point.getY() <= Math.max(start.getY(), end.getY()));
+    }
+
+    public void serialize(String filePath) {
+        try (FileWriter writer = new FileWriter(filePath, true)) { // Append mode
+            writer.write("<UseCaseAssociation>\n");
+            writer.write("  <Start Point>\n");
+            writer.write("   <x>"+start.getX()+"</x>");
+            writer.write("   <y>"+start.getY()+"</y>");
+            writer.write("  </Start Point>\n");
+            writer.write("  <End Point>\n");
+            writer.write("   <x>"+end.getX()+"</x>");
+            writer.write("   <y>"+end.getY()+"</y>");
+            writer.write("  </End Point>\n");
+            useCase.serialize("filePath");
+            actor.serializeUseCaseActor("filePath");
+            writer.write("</UseCaseAssociation>\n");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
