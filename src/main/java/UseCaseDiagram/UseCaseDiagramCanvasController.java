@@ -115,7 +115,7 @@ public class UseCaseDiagramCanvasController {
                 actor.setInitial(new Point(actor.getInitial().getX() + deltaX, actor.getInitial().getY() + deltaY));
             } else if (currentlySelectedElement instanceof UseCase) {
                 UseCase useCase = (UseCase) currentlySelectedElement;
-                useCase.setInitialpoint(new Point(useCase.getInitialpoint().getX() + deltaX, useCase.getInitialpoint().getY() + deltaY));
+                useCase.setInitialPoint(new Point(useCase.getInitialpoint().getX() + deltaX, useCase.getInitialpoint().getY() + deltaY));
             } else if (currentlySelectedElement instanceof UseCaseSystemBoundaryBox) {
                 UseCaseSystemBoundaryBox boundaryBox = (UseCaseSystemBoundaryBox) currentlySelectedElement;
                 boundaryBox.setInitialPoint(new Point(boundaryBox.getInitialPoint().getX() + deltaX, boundaryBox.getInitialPoint().getY() + deltaY));
@@ -641,6 +641,16 @@ public class UseCaseDiagramCanvasController {
         text.getTransforms().add(new Rotate(Math.toDegrees(angle), midX, midY));
         text.setStyle("-fx-font-size: 14px; -fx-font-weight: bold;");
         canvasPane.getChildren().addAll(dottedLine, arrowHead, text);
+    }
+
+    public void serializeUseCaseDiagram(){
+        for (UseCase useCase : useCases) {
+            useCase.serialize("C:\\Users\\ahmad\\IdeaProjects\\javaproject\\abc.txt");
+        }
+    }
+
+    public void deSerializeUseCaseDiagram(){
+
     }
 
 }

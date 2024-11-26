@@ -88,7 +88,6 @@ public class ClassDiagramCanvasController {
 
     public void handleAssociationButtonClick() {activeTool = "Association";}
 
-    public void handleCommentButtonClick() {activeTool = "Comment";}
 
     private void trackMouseCoordinates(MouseEvent event) {
         double x = event.getX();
