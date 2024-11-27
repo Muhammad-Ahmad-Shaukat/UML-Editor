@@ -6,6 +6,7 @@ import javafx.fxml.FXML;
 import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
@@ -31,13 +32,16 @@ import org.apache.batik.transcoder.TranscoderInput;
 import org.apache.batik.transcoder.TranscoderOutput;
 import org.apache.batik.transcoder.image.PNGTranscoder;
 import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import static UseCaseDiagram.Deserializer.deserialize;
 
 public class UseCaseDiagramCanvasController {
 
@@ -222,36 +226,72 @@ public class UseCaseDiagramCanvasController {
     public void handleSnapshot() {
         activeTool = null;
         try {
-            double canvasWidth = canvas.getWidth();
-            double canvasHeight = canvas.getHeight();
+            Node parentNode = canvas.getParent();
 
-            if (canvasWidth <= 0 || canvasHeight <= 0) {
-                showWarning("Warning", "Canvas Dimension Error");
+            if (parentNode instanceof Group) {
+                Group root = (Group) parentNode;
+                double canvasWidth = canvas.getWidth();
+                double canvasHeight = canvas.getHeight();
+
+                if (canvasWidth <= 0 || canvasHeight <= 0) {
+                    showWarning("Warning", "Canvas Dimension Error");
+                    return;
+                }
+
+                // Capture the entire root (Group or Pane) instead of just the canvas
+                WritableImage writableImage = new WritableImage((int) root.getBoundsInLocal().getWidth(),
+                        (int) root.getBoundsInLocal().getHeight());
+                root.snapshot(null, writableImage);
+
+                saveImage(writableImage);
+            } else if (parentNode instanceof Pane) {
+                Pane root = (Pane) parentNode;
+                double canvasWidth = canvas.getWidth();
+                double canvasHeight = canvas.getHeight();
+
+                if (canvasWidth <= 0 || canvasHeight <= 0) {
+                    showWarning("Warning", "Canvas Dimension Error");
+                    return;
+                }
+
+                // Capture the entire root (Pane) instead of just the canvas
+                WritableImage writableImage = new WritableImage((int) root.getBoundsInLocal().getWidth(),
+                        (int) root.getBoundsInLocal().getHeight());
+                root.snapshot(null, writableImage);
+
+                saveImage(writableImage);
+            } else {
+                showWarning("Unexpected Parent", "The parent is neither Group nor Pane.");
                 return;
             }
-            WritableImage writableImage = new WritableImage((int) canvasWidth, (int) canvasHeight);
-            canvas.snapshot(null, writableImage);
-            FileChooser fileChooser = new FileChooser();
-            fileChooser.setTitle("Save Canvas Snapshot");
-            fileChooser.setInitialFileName("canvas_snapshot.png");
-            fileChooser.getExtensionFilters().add(
-                    new FileChooser.ExtensionFilter("PNG Files", "*.png")
-            );
-            File file = fileChooser.showSaveDialog(null);
-            if (file != null) {
-                ImageIO.write(SwingFXUtils.fromFXImage(writableImage, null), "png", file);
-                Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                alert.setTitle("Save Canvas Snapshot");
-                alert.setHeaderText("Image Saved");
-                alert.showAndWait();
-            } else {
-                showWarning("Save Cancelled", "No file was selected.");
-            }
+
         } catch (Exception e) {
             e.printStackTrace();
             showWarning("Unexpected Error", "Unable to save snapshot. Please try later.");
         }
     }
+
+    private void saveImage(WritableImage writableImage) throws IOException {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Save Canvas Snapshot");
+        fileChooser.setInitialFileName("canvas_snapshot.png");
+        fileChooser.getExtensionFilters().add(
+                new FileChooser.ExtensionFilter("PNG Files", "*.png")
+        );
+        File file = fileChooser.showSaveDialog(null);
+        if (file != null) {
+            ImageIO.write(SwingFXUtils.fromFXImage(writableImage, null), "png", file);
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Save Canvas Snapshot");
+            alert.setHeaderText("Image Saved");
+            alert.showAndWait();
+        } else {
+            showWarning("Save Cancelled", "No file was selected.");
+        }
+    }
+
+
+
     //--------------------------------------
 
     public void showBoundaryBoxDetails(UseCaseSystemBoundaryBox box) {
@@ -295,6 +335,7 @@ public class UseCaseDiagramCanvasController {
         UseCaseAssociation association = new UseCaseAssociation(initial, finalPoint, associatedUseCase, associatedActor);
         associations.add(association);
         drawLine(associatedActor.getInitial(), associatedUseCase.getInitialpoint());
+
     }
 
     private void reDrawAssociation(UseCaseAssociation association) {
@@ -524,7 +565,6 @@ public class UseCaseDiagramCanvasController {
     public void drawUseCase(Point initial) {
         activeTool = null;
         UseCase useCase = new UseCase(initial);
-        useCases.add(useCase);
         StackPane useCasePane = new StackPane();
         useCasePane.setLayoutX(initial.getX());
         useCasePane.setLayoutY(initial.getY());
@@ -662,8 +702,13 @@ public class UseCaseDiagramCanvasController {
 
     }
 
-    public void deSerializeUseCaseDiagram(){
-
+    public void deserializeUseCaseDiagram(){
+        clearCanvas();
+        deserialize("C:\\Users\\ahmad\\IdeaProjects\\javaproject\\abc.txt",
+                useCases,associations,actors,includeRelations,excludeRelations,boundaryBoxes);
+        reDrawCanvas();
     }
+
+
 
 }

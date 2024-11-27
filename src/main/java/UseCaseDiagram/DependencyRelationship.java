@@ -61,6 +61,7 @@ public class DependencyRelationship {
             writer.write("<DependencyRelationship>\n");
 
             // Serialize Dependency Type
+            writer.write("This is Dependency Relationship\n");
             writer.write("  <DependencyType>" + dependencyType + "</DependencyType>\n");
 
             // Serialize Start UseCase
@@ -80,6 +81,8 @@ public class DependencyRelationship {
             writer.write("    </InitialPoint>\n");
             writer.write("    <Name>" + endUseCase.getName() + "</Name>\n");
             writer.write("  </EndUseCase>\n");
+
+            writer.write("  <Type>"+dependencyType+"</Type>");
 
             writer.write("</DependencyRelationship>\n");
         } catch (IOException e) {
