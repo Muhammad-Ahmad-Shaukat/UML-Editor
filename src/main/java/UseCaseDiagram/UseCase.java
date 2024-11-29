@@ -33,15 +33,15 @@ public class UseCase {
 
     public void serialize(String filePath) {
         try (FileWriter writer = new FileWriter(filePath, true)) { // Append mode
-            writer.write("<UseCase>\n");
-            writer.write("  <InitialPoint>\n");
-            writer.write("    <x>" + initialPoint.getX() + "</x>\n");
-            writer.write("    <y>" + initialPoint.getY() + "</y>\n");
-            writer.write("  </InitialPoint>\n");
-            writer.write("  <Name>" + name + "</Name>\n");
-            writer.write("</UseCase>\n");
+            writer.write("?UseCase?\n");
+            writer.write(toString()+"\n");
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public String toString() {
+        return "<initial Point>" + initialPoint.toString() + "</initial Point>" + "<name>" + name + "</name>";
     }
 }

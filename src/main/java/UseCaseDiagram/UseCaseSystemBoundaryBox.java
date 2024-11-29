@@ -61,27 +61,4 @@ public class UseCaseSystemBoundaryBox {
     public void setName(String name) {
         this.name = name;
     }
-
-    public void serializeBoundaryBox(String filePath) {
-        try (FileWriter writer = new FileWriter(filePath, true)) { // Append mode
-            writer.write("<UseCaseSystemBoundaryBox>\n");
-
-            // Serialize Initial Point
-            writer.write("  <InitialPoint>\n");
-            writer.write("    <x>" + initialPoint.getX() + "</x>\n");
-            writer.write("    <y>" + initialPoint.getY() + "</y>\n");
-            writer.write("  </InitialPoint>\n");
-
-            // Serialize Length and Width
-            writer.write("  <Length>" + length + "</Length>\n");
-            writer.write("  <Width>" + width + "</Width>\n");
-
-            // Serialize Name
-            writer.write("  <Name>" + name + "</Name>\n");
-
-            writer.write("</UseCaseSystemBoundaryBox>\n");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
 }
