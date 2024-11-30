@@ -31,17 +31,5 @@ public class UseCase {
         this.name = name;
     }
 
-    public void serialize(String filePath) {
-        try (FileWriter writer = new FileWriter(filePath, true)) { // Append mode
-            writer.write("?UseCase?\n");
-            writer.write(toString()+"\n");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
 
-    @Override
-    public String toString() {
-        return "<initial Point>" + initialPoint.toString() + "</initial Point>" + "<name>" + name + "</name>";
-    }
 }

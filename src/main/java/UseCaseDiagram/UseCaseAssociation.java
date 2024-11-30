@@ -55,18 +55,5 @@ public class UseCaseAssociation {
         this.useCase = useCase;
     }
 
-    public void serialize(String filePath) {
-        try (FileWriter writer = new FileWriter(filePath, true)) { // Append mode
-            writer.write("?UseCaseAssociation?\n");
-            writer.write(toString()+"\n");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
 
-    @Override
-    public String toString() {
-        return "<Start>" + start.toString() + "</Start>" + "<End>" + end.toString() + "</End>"
-                + "<Actor>" + actor.toString() + "</Actor>" + "<UseCase>" + useCase.toString() + "</UseCase>";
-    }
 }

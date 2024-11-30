@@ -35,21 +35,5 @@ public class UseCaseActor {
         this.name = name;
     }
 
-    public void serializeUseCaseActor(String filePath) {
-        try (FileWriter writer = new FileWriter(filePath, true)) { // Append mode
-            writer.write("?UseCaseActor?\n");
-            writer.write(toString()+"\n");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
 
-    @Override
-    public String toString() {
-        return "<Initial>" + initial.toString() + "</Initial>" + "<Name>" + name + "</Name>";
-    }
-
-    public void deserializeUseCaseActor(String x) {
-
-    }
 }

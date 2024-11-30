@@ -1,10 +1,13 @@
 package ClassDiagram;
 
+import javafx.scene.shape.Line;
+
 public class Association{
 
-    Multiplicity startMultiplicity;
-    Multiplicity endMultiplicity;
-    String text;
+    private Multiplicity startMultiplicity;
+    private Multiplicity endMultiplicity;
+    private String text;
+    private Line line;
 
 Association(Multiplicity startMultiplicity, Multiplicity endMultiplicity, String text) {
     this.startMultiplicity = startMultiplicity;
@@ -12,8 +15,11 @@ Association(Multiplicity startMultiplicity, Multiplicity endMultiplicity, String
     this.text = text;
 }
 
+    public Association(Line line) {
+        this.line = line;
+    }
 
-public Multiplicity getStartMultiplicity() {
+    public Multiplicity getStartMultiplicity() {
     return startMultiplicity;
 }
 
@@ -36,5 +42,13 @@ public String getText() {
 public void setText(String text) {
     this.text = text;
 }
+
+    public Line getLine() {
+        return line;
+    }
+
+    public void setLine(Line line) {
+        this.line = line;
+    }
 }
 
