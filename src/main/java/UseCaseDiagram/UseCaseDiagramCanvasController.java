@@ -215,8 +215,6 @@ public class UseCaseDiagramCanvasController {
                     currentlySelectedDependency = null; // Reset selection
                 }
             }
-
-
             // Handle Association Deletion
             if (currentlySelectedAssociation != null) {
                 Line line = associationLines.get(currentlySelectedAssociation);
