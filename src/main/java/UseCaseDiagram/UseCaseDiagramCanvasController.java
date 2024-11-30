@@ -17,6 +17,8 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.WritableImage;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.image.ImageView;
@@ -32,7 +34,6 @@ import org.apache.batik.transcoder.TranscoderInput;
 import org.apache.batik.transcoder.TranscoderOutput;
 import org.apache.batik.transcoder.image.PNGTranscoder;
 import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -41,7 +42,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import static UseCaseDiagram.Deserializer.deserialize;
 
 public class UseCaseDiagramCanvasController {
 
@@ -50,12 +50,16 @@ public class UseCaseDiagramCanvasController {
     private Canvas canvas;
     private GraphicsContext gc;
 
-    ArrayList<UseCase> useCases = new ArrayList<>();
-    ArrayList<UseCaseAssociation> associations = new ArrayList<>();
-    ArrayList<UseCaseActor> actors = new ArrayList<>();
-    ArrayList<DependencyRelationship> includeRelations = new ArrayList<>();
-    ArrayList<DependencyRelationship> excludeRelations = new ArrayList<>();
-    ArrayList<UseCaseSystemBoundaryBox> boundaryBoxes = new ArrayList<>();
+    List<UseCase> useCases = new ArrayList<>();
+    List<UseCaseAssociation> associations = new ArrayList<>();
+    List<UseCaseActor> actors = new ArrayList<>();
+    List<DependencyRelationship> includeRelations = new ArrayList<>();
+    List<DependencyRelationship> excludeRelations = new ArrayList<>();
+    List<UseCaseSystemBoundaryBox> boundaryBoxes = new ArrayList<>();
+    private Map<UseCaseAssociation, Line> associationLines = new HashMap<>();
+    private UseCaseAssociation currentlySelectedAssociation = null;
+    private Map<DependencyRelationship, DottedLineComponents> dottedLineComponentsMap = new HashMap<>();
+    private DependencyRelationship currentlySelectedDependency = null;
 
     private String activeTool = null;
     private Point initialPoint = null;
@@ -69,11 +73,17 @@ public class UseCaseDiagramCanvasController {
         canvasPane.getChildren().add(canvas);
         canvas.widthProperty().bind(canvasPane.widthProperty());
         canvas.heightProperty().bind(canvasPane.heightProperty());
+
+        // Set event listeners for mouse and keyboard
         canvasPane.setOnMouseMoved(this::trackMouseCoordinates);
         canvasPane.setOnMousePressed(this::handleMousePress);
         canvasPane.setOnMouseReleased(this::handleMouseRelease);
         canvasPane.setOnMouseClicked(this::handleMouseClick);
         canvasPane.setOnMouseDragged(this::handleMouseDrag);
+
+        // Set the canvasPane to be focusable and register key press handler
+        canvasPane.setFocusTraversable(true); // Make canvasPane focusable
+        canvasPane.setOnKeyPressed(this::handleKeyPress); // Register key press handler
     }
 
     private Point trackMouseCoordinates(MouseEvent event) {
@@ -85,21 +95,356 @@ public class UseCaseDiagramCanvasController {
     @FXML
     private void handleMouseClick(MouseEvent event) {
         Point clickPoint = trackMouseCoordinates(event);
+
         if (activeTool != null) {
+            return; // Ignore clicks when a tool is active
+        }
+
+        // Double-click: Handle element properties or highlight dependencies
+        if (event.getClickCount() == 2) {
+            // Check for dependency relationship near the click point
+            for (Map.Entry<DependencyRelationship, DottedLineComponents> entry : dottedLineComponentsMap.entrySet()) {
+                Line line = entry.getValue().getLine();
+                if (isPointNearLine(clickPoint, line, 5.0)) { // Tolerance = 5.0
+                    // Highlight the dependency relationship
+                    if (currentlySelectedDependency != null) {
+                        highlightDependency(currentlySelectedDependency, Color.BLACK); // Reset previous selection
+                    }
+                    currentlySelectedDependency = entry.getKey();
+                    highlightDependency(currentlySelectedDependency, Color.BLUE);
+                    return; // Dependency found, stop further checks
+                }
+            }
+
+            // Check if a `UseCase` or `Actor` is clicked
+            Object selectedElement = findElementNearPoint(clickPoint);
+            if (selectedElement != null) {
+                currentlySelectedElement = selectedElement;
+                showDetailsIfSelected(); // Show the properties of the selected element
+                return;
+            }
+        }
+
+        // Single-click: Select or reset element/association/dependency
+        if (event.getClickCount() == 1) {
+            Object selectedElement = findElementNearPoint(clickPoint);
+
+            if (selectedElement != null) {
+                // Handle `UseCase` or `Actor` selection
+                currentlySelectedElement = selectedElement;
+
+                // Reset other selections
+                if (currentlySelectedDependency != null) {
+                    highlightDependency(currentlySelectedDependency, Color.BLACK);
+                    currentlySelectedDependency = null;
+                }
+            } else {
+                // Check if a line (association or dependency) is clicked
+                boolean associationSelected = false;
+                for (Map.Entry<UseCaseAssociation, Line> entry : associationLines.entrySet()) {
+                    if (isPointNearLine(clickPoint, entry.getValue(), 5.0)) {
+                        // Highlight the selected association
+                        if (currentlySelectedAssociation != null) {
+                            highlightAssociation(currentlySelectedAssociation, Color.BLACK);
+                        }
+                        currentlySelectedAssociation = entry.getKey();
+                        highlightAssociation(currentlySelectedAssociation, Color.BLUE);
+                        associationSelected = true;
+                        break;
+                    }
+                }
+
+                // If no association line is clicked, check dependency relationships
+                if (!associationSelected) {
+                    for (Map.Entry<DependencyRelationship, DottedLineComponents> entry : dottedLineComponentsMap.entrySet()) {
+                        if (isPointNearLine(clickPoint, entry.getValue().getLine(), 5.0)) {
+                            // Highlight the selected dependency
+                            if (currentlySelectedDependency != null) {
+                                highlightDependency(currentlySelectedDependency, Color.BLACK);
+                            }
+                            currentlySelectedDependency = entry.getKey();
+                            highlightDependency(currentlySelectedDependency, Color.BLUE);
+                            return;
+                        }
+                    }
+                }
+
+                // Reset selection if clicking elsewhere
+                if (!associationSelected) {
+                    if (currentlySelectedAssociation != null) {
+                        highlightAssociation(currentlySelectedAssociation, Color.BLACK);
+                        currentlySelectedAssociation = null;
+                    }
+                    if (currentlySelectedDependency != null) {
+                        highlightDependency(currentlySelectedDependency, Color.BLACK);
+                        currentlySelectedDependency = null;
+                    }
+                    currentlySelectedElement = null;
+                }
+            }
+        }
+
+        canvasPane.requestFocus(); // Ensure the canvas pane gets focus
+    }
+
+
+    @FXML
+    private void handleKeyPress(KeyEvent event) {
+        if (event.getCode() == KeyCode.DELETE) {
+            // Handle Dependency Deletion
+            if (currentlySelectedDependency != null) {
+                DottedLineComponents components = dottedLineComponentsMap.get(currentlySelectedDependency);
+                if (components != null) {
+                    // Remove all components related to the dependency from the canvas
+                    canvasPane.getChildren().removeAll(
+                            components.getLine(),
+                            components.getArrowHead(),
+                            components.getText()
+                    );
+
+                    // Remove the dependency from the map
+                    dottedLineComponentsMap.remove(currentlySelectedDependency);
+
+                    // Remove the dependency from the corresponding collection
+                    if ("include".equals(currentlySelectedDependency.getDependencyType())) {
+                        includeRelations.remove(currentlySelectedDependency); // Removes from the includeRelations list
+                    } else if ("exclude".equals(currentlySelectedDependency.getDependencyType())) {
+                        excludeRelations.remove(currentlySelectedDependency); // Removes from the excludeRelations list
+                    }
+
+                    currentlySelectedDependency = null; // Reset selection
+                }
+            }
+
+
+            // Handle Association Deletion
+            if (currentlySelectedAssociation != null) {
+                Line line = associationLines.get(currentlySelectedAssociation);
+                if (line != null) {
+                    // Remove the association line from the canvas
+                    canvasPane.getChildren().remove(line);
+
+                    // Remove the association from the map and collection
+                    associationLines.remove(currentlySelectedAssociation);
+                    associations.remove(currentlySelectedAssociation);
+
+                    currentlySelectedAssociation = null; // Reset selection
+                }
+            }
+        }
+    }
+
+
+    private UseCase checkUseCaseOnPoint(Point point) {
+        Object object = findElementNearPoint(point);
+        return object instanceof UseCase ? (UseCase) object : null;
+    }
+
+    public void drawDottedLineWithArrow(Point startPoint, Point endPoint, String name, DependencyRelationship relationship) {
+        Line dottedLine = new Line(startPoint.getX(), startPoint.getY(), endPoint.getX(), endPoint.getY());
+        dottedLine.setStroke(Color.BLACK);
+        dottedLine.getStrokeDashArray().addAll(10.0, 5.0);
+        dottedLine.setStrokeWidth(2);
+
+        double angle = Math.atan2(endPoint.getY() - startPoint.getY(), endPoint.getX() - startPoint.getX());
+        double arrowLength = 10;
+        double x1 = endPoint.getX() - arrowLength * Math.cos(angle - Math.PI / 6);
+        double y1 = endPoint.getY() - arrowLength * Math.sin(angle - Math.PI / 6);
+        double x2 = endPoint.getX() - arrowLength * Math.cos(angle + Math.PI / 6);
+        double y2 = endPoint.getY() - arrowLength * Math.sin(angle + Math.PI / 6);
+
+        Polygon arrowHead = new Polygon();
+        arrowHead.getPoints().addAll(
+                endPoint.getX(), endPoint.getY(),
+                x1, y1,
+                x2, y2
+        );
+        arrowHead.setFill(Color.BLACK);
+
+        double midX = (startPoint.getX() + endPoint.getX()) / 2;
+        double midY = (startPoint.getY() + endPoint.getY()) / 2;
+        Text text = new Text(midX, midY, "<<" + name + ">>");
+        text.setFill(Color.BLACK);
+        text.getTransforms().add(new Rotate(Math.toDegrees(angle), midX, midY));
+        text.setStyle("-fx-font-size: 14px; -fx-font-weight: bold;");
+
+        // Add components to the canvas
+        canvasPane.getChildren().addAll(dottedLine, arrowHead, text);
+
+        // Track all components in the map
+        dottedLineComponentsMap.put(relationship, new DottedLineComponents(dottedLine, text, arrowHead));
+    }
+
+    public void drawInclude(Point initial, Point finalPoint) {
+        activeTool = null;
+        UseCase startUseCase = checkUseCaseOnPoint(initial);
+        UseCase endUseCase = checkUseCaseOnPoint(finalPoint);
+
+        if (startUseCase == null || endUseCase == null) {
+            showWarning("Error", "Use Case not found on one or both points");
             return;
         }
-        Object selectedElement = findElementNearPoint(clickPoint);
-        if (event.getClickCount() == 2) {
-            if (selectedElement != null) {
-                currentlySelectedElement = selectedElement;
-                showDetailsIfSelected();
+
+        DependencyRelationship include = new DependencyRelationship(startUseCase, endUseCase, "include");
+        includeRelations.add(include);
+        drawDottedLineWithArrow(
+                include.getStartUseCase().getInitialpoint(),
+                include.getEndUseCase().getInitialpoint(),
+                include.getDependencyType(),
+                include
+        );
+    }
+
+    public void drawExclude(Point initial, Point finalPoint) {
+        activeTool = null;
+        UseCase startUseCase = checkUseCaseOnPoint(initial);
+        UseCase endUseCase = checkUseCaseOnPoint(finalPoint);
+
+        if (startUseCase == null || endUseCase == null) {
+            showWarning("Error", "Use Case not found on one or both points");
+            return;
+        }
+
+        DependencyRelationship exclude = new DependencyRelationship(startUseCase, endUseCase, "exclude");
+        excludeRelations.add(exclude);
+        drawDottedLineWithArrow(
+                exclude.getStartUseCase().getInitialpoint(),
+                exclude.getEndUseCase().getInitialpoint(),
+                exclude.getDependencyType(),
+                exclude
+        );
+    }
+
+    private void reDrawExclude(DependencyRelationship exclude) {
+        drawDottedLineWithArrow(
+                exclude.getStartUseCase().getInitialpoint(),
+                exclude.getEndUseCase().getInitialpoint(),
+                exclude.getDependencyType(),
+                exclude
+        );
+    }
+
+    private void redrawInclude(DependencyRelationship include) {
+        drawDottedLineWithArrow(
+                include.getStartUseCase().getInitialpoint(),
+                include.getEndUseCase().getInitialpoint(),
+                include.getDependencyType(),
+                include
+        );
+    }
+
+
+
+
+
+
+    private void highlightDependency(DependencyRelationship dependency, Color color) {
+        DottedLineComponents components = dottedLineComponentsMap.get(dependency);
+        if (components != null) {
+            components.getLine().setStroke(color); // Highlight the line
+            components.getArrowHead().setFill(color); // Highlight the arrowhead
+            components.getText().setFill(color); // Highlight the text
+        }
+    }
+
+
+    public void drawAssociation(Point initial, Point finalPoint) {
+        activeTool = null;
+        Boolean actor = false;
+        Boolean useCase = false;
+        UseCaseActor associatedActor = null;
+        UseCase associatedUseCase = null;
+
+        Object objectX = findElementNearPoint(initial);
+        Object objectY = findElementNearPoint(finalPoint);
+
+        if (objectX != null) {
+            if (objectX instanceof UseCaseActor && !actor) {
+                actor = true;
+                associatedActor = (UseCaseActor) objectX;
+            } else if (objectX instanceof UseCase && !useCase) {
+                useCase = true;
+                associatedUseCase = (UseCase) objectX;
             }
-        } else if (event.getClickCount() == 1) {
-            if (selectedElement != null) {
-                currentlySelectedElement = selectedElement;
+        } else {
+            showWarning("No Actor Found", "No Actor or Use Case Found at Initial Point");
+            return;
+        }
+
+        if (objectY != null) {
+            if (objectY instanceof UseCaseActor && !actor) {
+                actor = true;
+                associatedActor = (UseCaseActor) objectY;
+            } else if (objectY instanceof UseCase && !useCase) {
+                useCase = true;
+                associatedUseCase = (UseCase) objectY;
             } else {
-                currentlySelectedElement = null;
+                showWarning("Warning", "Cannot Have Association from Actor to Actor or Use Case to Use Case");
             }
+        } else {
+            showWarning("No Use Case Found", "No Actor or Use Case Found at Final Point");
+            return;
+        }
+
+        UseCaseAssociation association = new UseCaseAssociation(initial, finalPoint, associatedUseCase, associatedActor);
+
+        Line line = new Line();
+        line.setStartX(initial.getX());
+        line.setStartY(initial.getY() + 55);
+        line.setEndX(finalPoint.getX());
+        line.setEndY(finalPoint.getY() + 25);
+        line.setStrokeWidth(2);
+        line.setStroke(Color.BLACK);
+
+        // Add the line to the canvas and map
+        canvasPane.getChildren().add(line);
+        associationLines.put(association, line);
+
+        associations.add(association);
+    }
+
+    private void reDrawAssociation(UseCaseAssociation association) {
+        activeTool = null;
+
+        // Validate if the association's points are valid
+        if (findElementNearPoint(association.getActor().getInitial()) instanceof UseCaseActor &&
+                findElementNearPoint(association.getUseCase().getInitialpoint()) instanceof UseCase) {
+
+            // Redraw the association line
+            Line line = new Line();
+            line.setStartX(association.getActor().getInitial().getX());
+            line.setStartY(association.getActor().getInitial().getY() + 55);
+            line.setEndX(association.getUseCase().getInitialpoint().getX());
+            line.setEndY(association.getUseCase().getInitialpoint().getY() + 25);
+            line.setStrokeWidth(2);
+            line.setStroke(Color.BLACK);
+
+            // Add the line to the canvas
+            canvasPane.getChildren().add(line);
+
+            // Add the association and its line to the map
+            associationLines.put(association, line);
+
+            // Add the association back to the list
+            if (!associations.contains(association)) {
+                associations.add(association);
+            }
+        }
+    }
+
+
+
+    private void showWarning(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.WARNING);
+        alert.setTitle(title);
+        alert.setHeaderText(title);
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
+    private void highlightAssociation(UseCaseAssociation association, Color color) {
+        Line line = associationLines.get(association); // Retrieve the line from the map
+        if (line != null) {
+            line.setStroke(color); // Change the color of the line
         }
     }
 
@@ -216,7 +561,7 @@ public class UseCaseDiagramCanvasController {
             reDrawAssociation(association);
         }
         for (DependencyRelationship relationship : includeRelationsCopy) {
-            reDrawExclude(relationship);
+            redrawInclude(relationship);
         }
         for (DependencyRelationship relationship : excludeRelationsCopy) {
             reDrawExclude(relationship);
@@ -296,139 +641,6 @@ public class UseCaseDiagramCanvasController {
 
     public void showBoundaryBoxDetails(UseCaseSystemBoundaryBox box) {
         System.out.println("box"+box.getName());
-    }
-
-    public void drawAssociation(Point initial, Point finalPoint) {
-        activeTool = null;
-        Boolean actor = false;
-        Boolean useCase = false;
-        UseCaseActor associatedActor = null;
-        UseCase associatedUseCase = null;
-        Object objectX = findElementNearPoint(initial);
-        Object objectY = findElementNearPoint(finalPoint);
-        if (objectX != null) {
-            if (objectX instanceof UseCaseActor && !actor) {
-                actor = true;
-                associatedActor = (UseCaseActor) objectX;
-            } else if (objectX instanceof UseCase && !useCase) {
-                useCase = true;
-                associatedUseCase = (UseCase) objectX;
-            }
-        } else {
-            showWarning("No Actor Found", "No Actor or Use Case Found at Initial Point");
-            return;
-        }
-        if (objectY != null) {
-            if (objectY instanceof UseCaseActor && !actor) {
-                actor = true;
-                associatedActor = (UseCaseActor) objectY;
-            } else if (objectY instanceof UseCase && !useCase) {
-                useCase = true;
-                associatedUseCase = (UseCase) objectY;
-            } else {
-                showWarning("Warning", "Cannot Have Association from Actor to Actor or Use Case to Use Case");
-            }
-        } else {
-            showWarning("No Use Case Found", "No Actor or Use Case Found at Final Point");
-            return;
-        }
-        UseCaseAssociation association = new UseCaseAssociation(initial, finalPoint, associatedUseCase, associatedActor);
-        associations.add(association);
-        drawLine(associatedActor.getInitial(), associatedUseCase.getInitialpoint());
-
-    }
-
-    private void reDrawAssociation(UseCaseAssociation association) {
-        activeTool = null;
-            if (findElementNearPoint(association.getActor().getInitial()) instanceof UseCaseActor ||
-                    findElementNearPoint(association.getUseCase().getInitialpoint()) instanceof UseCaseActor) {
-                associations.add(association);
-                drawLine(association.getActor().getInitial(), association.getUseCase().getInitialpoint());
-            }
-    }
-
-    private void showWarning(String title, String message) {
-        Alert alert = new Alert(Alert.AlertType.WARNING);
-        alert.setTitle(title);
-        alert.setHeaderText(title);
-        alert.setContentText(message);
-        alert.showAndWait();
-    }
-
-
-    public void drawLine(Point x, Point y) {
-        Line line = new Line();
-        line.setStartX(x.getX());
-        line.setStartY(x.getY()+55);
-        line.setEndX(y.getX());
-        line.setEndY(y.getY()+25);
-        line.setStrokeWidth(2);
-        line.setStroke(Color.BLACK);
-        canvasPane.getChildren().add(line);
-
-    }
-
-    private UseCase checkUseCaseOnPoint(Point point) {
-        UseCase associatedUseCase = null;
-        Object object = findElementNearPoint(point);
-        if (object instanceof UseCase) {
-            associatedUseCase = (UseCase) object;
-            return associatedUseCase;
-        }
-        return null;
-    }
-
-    public void drawInclude(Point initial, Point finalPoint) {
-        activeTool = null;
-        UseCase startUseCase = checkUseCaseOnPoint(initial);
-        UseCase endUseCase = checkUseCaseOnPoint(finalPoint);
-
-        if (startUseCase != null && endUseCase != null) {
-
-        } else if (startUseCase == null) {
-            showWarning("Use Case Not Found", "Initial Point Does Not Have Use Case");
-            return;
-        } else if (endUseCase == null) {
-            showWarning("Use Case Found", "Final Point Does Not Have Use Case");
-            return;
-        } else {
-            showWarning("Error", "No Use Case Found");
-            return;
-        }
-        DependencyRelationship include = new DependencyRelationship(startUseCase, endUseCase, "include");
-        includeRelations.add(include);
-        drawDottedLineWithArrow(include.getStartUseCase().getInitialpoint(), include.getEndUseCase().getInitialpoint(),include.getDependencyType());
-    }
-
-    public void drawExclude(Point initial, Point finalPoint) {
-        activeTool = null;
-        UseCase startUseCase = checkUseCaseOnPoint(initial);
-        UseCase endUseCase = checkUseCaseOnPoint(finalPoint);
-        if (startUseCase != null && endUseCase != null) {
-
-        } else if (startUseCase == null) {
-            showWarning("Use Case Not Found", "Initial Point Does Not Have Use Case");
-            return;
-        } else if (endUseCase == null) {
-            showWarning("Use Case Found", "Final Point Does Not Have Use Case");
-            return;
-        } else {
-            showWarning("Error", "No Use Case Found");
-            return;
-        }
-        DependencyRelationship exclude = new DependencyRelationship(startUseCase, endUseCase, "exclude");
-        excludeRelations.add(exclude);
-        drawDottedLineWithArrow(exclude.getStartUseCase().getInitialpoint(), exclude.getEndUseCase().getInitialpoint(),exclude.getDependencyType());
-    }
-
-    private void reDrawExclude(DependencyRelationship exclude) {
-        excludeRelations.add(exclude);
-        drawDottedLineWithArrow(exclude.getStartUseCase().getInitialpoint(), exclude.getEndUseCase().getInitialpoint(),exclude.getDependencyType());
-    }
-
-    private void redrawInclude(DependencyRelationship include) {
-        excludeRelations.add(include);
-        drawDottedLineWithArrow(include.getStartUseCase().getInitialpoint(), include.getEndUseCase().getInitialpoint(),include.getDependencyType());
     }
 
     public void drawBoundaryBox(Point initial) {
@@ -656,32 +868,7 @@ public class UseCaseDiagramCanvasController {
     }
 
 
-    public void drawDottedLineWithArrow(Point startPoint, Point endPoint, String name) {
-        Line dottedLine = new Line(startPoint.getX(), startPoint.getY(), endPoint.getX(), endPoint.getY());
-        dottedLine.setStroke(Color.BLACK);
-        dottedLine.getStrokeDashArray().addAll(10.0, 5.0);
-        dottedLine.setStrokeWidth(2);
-        double angle = Math.atan2(endPoint.getY() - startPoint.getY(), endPoint.getX() - startPoint.getX());
-        double arrowLength = 10;
-        double x1 = endPoint.getX() - arrowLength * Math.cos(angle - Math.PI / 6);
-        double y1 = endPoint.getY() - arrowLength * Math.sin(angle - Math.PI / 6);
-        double x2 = endPoint.getX() - arrowLength * Math.cos(angle + Math.PI / 6);
-        double y2 = endPoint.getY() - arrowLength * Math.sin(angle + Math.PI / 6);
-        Polygon arrowHead = new Polygon();
-        arrowHead.getPoints().addAll(
-                endPoint.getX(), endPoint.getY(),
-                x1, y1,
-                x2, y2
-        );
-        arrowHead.setFill(Color.BLACK);
-        double midX = (startPoint.getX() + endPoint.getX()) / 2;
-        double midY = (startPoint.getY() + endPoint.getY()) / 2;
-        Text text = new Text(midX, midY, "<<"+name+">>");
-        text.setFill(Color.BLACK);
-        text.getTransforms().add(new Rotate(Math.toDegrees(angle), midX, midY));
-        text.setStyle("-fx-font-size: 14px; -fx-font-weight: bold;");
-        canvasPane.getChildren().addAll(dottedLine, arrowHead, text);
-    }
+
 
     public void serializeUseCaseDiagram(){
         for (UseCase useCase : useCases) {
@@ -702,13 +889,90 @@ public class UseCaseDiagramCanvasController {
 
     }
 
-    public void deserializeUseCaseDiagram(){
-        clearCanvas();
-        deserialize("C:\\Users\\ahmad\\IdeaProjects\\javaproject\\abc.txt",
-                useCases,associations,actors,includeRelations,excludeRelations,boundaryBoxes);
+    public void deserializeUseCaseDiagram() {
+        // Deserialize all objects
+        List<Object> objects = DeSerialize.deserialize("C:\\Users\\ahmad\\IdeaProjects\\javaproject\\abc.txt");
+
+        // Step 1: Populate simple objects
+        for (Object obj : objects) {
+            if (obj instanceof UseCase) {
+                useCases.add((UseCase) obj);
+            } else if (obj instanceof UseCaseActor) {
+                actors.add((UseCaseActor) obj);
+            } else if (obj instanceof UseCaseSystemBoundaryBox) {
+                boundaryBoxes.add((UseCaseSystemBoundaryBox) obj);
+            }
+        }
+
+        // Step 2: Populate associations
+        for (Object obj : objects) {
+            if (obj instanceof UseCaseAssociation) {
+                UseCaseAssociation association = (UseCaseAssociation) obj;
+                // Resolve references to UseCase and UseCaseActor
+                association.setUseCase(findUseCaseByName(association.getUseCase().getName()));
+                association.setActor(findActorByName(association.getActor().getName()));
+                associations.add(association);
+            }
+        }
+
+        // Step 3: Populate relationships
+        for (Object obj : objects) {
+            if (obj instanceof DependencyRelationship) {
+                DependencyRelationship relationship = (DependencyRelationship) obj;
+                // Resolve references to UseCases
+                relationship.setStartUseCase(findUseCaseByName(relationship.getStartUseCase().getName()));
+                relationship.setEndUseCase(findUseCaseByName(relationship.getEndUseCase().getName()));
+                if ("include".equals(relationship.getDependencyType())) {
+                    includeRelations.add(relationship);
+                } else if ("exclude".equals(relationship.getDependencyType())) {
+                    excludeRelations.add(relationship);
+                }
+            }
+        }
+
+        // Redraw the canvas with the reconstructed objects
         reDrawCanvas();
     }
 
 
+    private UseCase findUseCaseByName(String name) {
+        for (UseCase useCase : useCases) {
+            if (useCase.getName().equals(name)) {
+                return useCase;
+            }
+        }
+        return null; // Or throw an exception if the reference is critical
+    }
 
+    private UseCaseActor findActorByName(String name) {
+        for (UseCaseActor actor : actors) {
+            if (actor.getName().equals(name)) {
+                return actor;
+            }
+        }
+        return null; // Or throw an exception if the reference is critical
+    }
+
+
+    private boolean isPointNearLine(Point point, Line line, double tolerance) {
+        // Line start and end points
+        double x1 = line.getStartX();
+        double y1 = line.getStartY();
+        double x2 = line.getEndX();
+        double y2 = line.getEndY();
+
+        // Point coordinates
+        double px = point.getX();
+        double py = point.getY();
+
+        // Compute the distance from the point to the line
+        double lineLength = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+        double area = Math.abs((px - x1) * (y2 - y1) - (py - y1) * (x2 - x1));
+        double distance = area / lineLength;
+
+        // Check if the point lies within tolerance and within line segment bounds
+        boolean withinBounds = (px >= Math.min(x1, x2) && px <= Math.max(x1, x2)) &&
+                (py >= Math.min(y1, y2) && py <= Math.max(y1, y2));
+        return distance <= tolerance && withinBounds;
+    }
 }

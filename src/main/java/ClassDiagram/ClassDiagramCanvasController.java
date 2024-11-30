@@ -25,9 +25,6 @@ import java.util.function.BiConsumer;
 
 public class ClassDiagramCanvasController {
 
-    private Point initialPoint;
-    private Point finalPoint;
-
     @FXML
     private Pane canvasPane;
 

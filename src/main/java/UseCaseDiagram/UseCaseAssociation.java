@@ -55,60 +55,18 @@ public class UseCaseAssociation {
         this.useCase = useCase;
     }
 
-    public boolean isPointOnLine(Point point) {
-        double tolerance = 5.0;
-        double lineLength = Math.sqrt(Math.pow(end.getX() - start.getX(), 2) + Math.pow(end.getY() - start.getY(), 2));
-        double area = Math.abs((point.getX() - start.getX()) * (end.getY() - start.getY()) -
-                (point.getY() - start.getY()) * (end.getX() - start.getX()));
-        double distanceFromLine = area / lineLength;
-
-        if (distanceFromLine > tolerance) {
-            return false;
-        }
-        return (point.getX() >= Math.min(start.getX(), end.getX()) &&
-                point.getX() <= Math.max(start.getX(), end.getX()) &&
-                point.getY() >= Math.min(start.getY(), end.getY()) &&
-                point.getY() <= Math.max(start.getY(), end.getY()));
-    }
-
     public void serialize(String filePath) {
         try (FileWriter writer = new FileWriter(filePath, true)) { // Append mode
-            writer.write("<UseCaseAssociation>\n");
-
-            // Serialize Start Point
-            writer.write("  <StartPoint>\n");
-            writer.write("    <x>" + start.getX() + "</x>\n");
-            writer.write("    <y>" + start.getY() + "</y>\n");
-            writer.write("  </StartPoint>\n");
-
-            // Serialize End Point
-            writer.write("  <EndPoint>\n");
-            writer.write("    <x>" + end.getX() + "</x>\n");
-            writer.write("    <y>" + end.getY() + "</y>\n");
-            writer.write("  </EndPoint>\n");
-
-            // Serialize UseCase
-            writer.write("  <UseCase>\n");
-            writer.write("    <InitialPoint>\n");
-            writer.write("      <x>" + useCase.getInitialpoint().getX() + "</x>\n");
-            writer.write("      <y>" + useCase.getInitialpoint().getY() + "</y>\n");
-            writer.write("    </InitialPoint>\n");
-            writer.write("    <Name>" + useCase.getName() + "</Name>\n");
-            writer.write("  </UseCase>\n");
-
-            // Serialize Actor
-            writer.write("  <Actor>\n");
-            writer.write("    <Name>" + actor.getName() + "</Name>\n");
-            writer.write("    <InitialPoint>\n");
-            writer.write("      <x>" + actor.getInitial().getX() + "</x>\n");
-            writer.write("      <y>" + actor.getInitial().getY() + "</y>\n");
-            writer.write("    </InitialPoint>\n");
-            writer.write("  </Actor>\n");
-
-            writer.write("</UseCaseAssociation>\n");
+            writer.write("?UseCaseAssociation?\n");
+            writer.write(toString()+"\n");
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
+    @Override
+    public String toString() {
+        return "<Start>" + start.toString() + "</Start>" + "<End>" + end.toString() + "</End>"
+                + "<Actor>" + actor.toString() + "</Actor>" + "<UseCase>" + useCase.toString() + "</UseCase>";
+    }
 }

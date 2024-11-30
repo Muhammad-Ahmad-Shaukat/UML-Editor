@@ -1,8 +1,8 @@
 package ClassDiagram;
 
 public class Point {
-    Double x;
-    Double y;
+    private Double x;
+    private Double y;
 
     public Point(Double x, Double y) {
         this.x = x;
@@ -30,5 +30,10 @@ public class Point {
             throw new IllegalArgumentException("Other point cannot be null");
         }
         return Math.sqrt(Math.pow(this.x - other.x, 2) + Math.pow(this.y - other.y, 2));
+    }
+
+    @Override
+    public String toString() {
+        return "<X>" + x + "</X>" + "<Y>" + y + "</Y>";
     }
 }
