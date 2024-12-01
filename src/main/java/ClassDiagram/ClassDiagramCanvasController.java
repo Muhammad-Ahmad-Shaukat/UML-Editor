@@ -473,5 +473,16 @@ public class ClassDiagramCanvasController {
             selectedClassBox = null;
         }
     }
+    private VBox getClassAtPoint(double x, double y) {
+        for (Node node : canvasPane.getChildren()) {
+            if (node instanceof VBox) {
+                VBox classBox = (VBox) node;
+                if (isWithinBounds(classBox, x, y)) {
+                    return classBox;  // Return the VBox if it contains the point
+                }
+            }
+        }
+        return null;  // Return null if no class was found at the point
+    }
 
 }

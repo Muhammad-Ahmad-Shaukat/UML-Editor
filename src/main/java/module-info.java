@@ -11,6 +11,7 @@ module com.boota.javaproject {
     requires eu.hansolo.tilesfx;
     requires javafx.swing;
     requires batik.all;
+    requires com.fasterxml.jackson.databind;
 
     opens com.boota.javaproject to javafx.fxml;
     exports com.boota.javaproject;

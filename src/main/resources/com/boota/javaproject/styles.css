@@ -54,3 +54,40 @@
     -fx-scale-x: 1.0; /* Reset scale effect on press */
     -fx-scale-y: 1.0;
 }
+.modal-stage {
+    -fx-background-color: #ffffff;
+    -fx-padding: 20;
+    -fx-spacing: 15;
+}
+
+.modal-label {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #333333;
+}
+
+.modal-textfield {
+    -fx-background-color: #f9f9f9;
+    -fx-border-color: #cccccc;
+    -fx-border-radius: 5;
+    -fx-padding: 5;
+}
+
+.modal-button {
+    -fx-background-color: #4CAF50;
+    -fx-text-fill: white;
+    -fx-padding: 8 16;
+    -fx-border-radius: 5;
+}
+
+.modal-button:hover {
+    -fx-background-color: #45a049;
+}
+
+.modal-button.delete {
+    -fx-background-color: #f44336;
+}
+
+.modal-button.delete:hover {
+    -fx-background-color: #d32f2f;
+}

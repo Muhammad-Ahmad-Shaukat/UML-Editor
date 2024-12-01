@@ -869,21 +869,7 @@ public class UseCaseDiagramCanvasController {
 
 
     public void serializeUseCaseDiagram(){
-        for (UseCase useCase : useCases) {
-            useCase.serialize("C:\\Users\\ahmad\\IdeaProjects\\javaproject\\abc.txt");
-        }
-        for (UseCaseActor actor : actors) {
-            actor.serializeUseCaseActor("C:\\Users\\ahmad\\IdeaProjects\\javaproject\\abc.txt");
-        }
-        for (UseCaseAssociation association : associations) {
-            association.serialize("C:\\Users\\ahmad\\IdeaProjects\\javaproject\\abc.txt");
-        }
-        for (DependencyRelationship include: includeRelations){
-            include.serializedependencyRelationship("C:\\Users\\ahmad\\IdeaProjects\\javaproject\\abc.txt");
-        }
-        for (DependencyRelationship exclude: excludeRelations){
-            exclude.serializedependencyRelationship("C:\\Users\\ahmad\\IdeaProjects\\javaproject\\abc.txt");
-        }
+
 
     }
 
