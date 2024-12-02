@@ -14,6 +14,8 @@
             <Button text="Class" onAction="#handleClassButtonClick"/>
             <Button text="Snap Diagram" onAction="#snapCanvas"/>
             <Button text="Association" onAction="#handleAssociationButtonClick"/>
+            <Button text="Inheritance" />
+            <Button text="Interface" onAction="#interfacePressed"/>
         </HBox>
     </top>
 

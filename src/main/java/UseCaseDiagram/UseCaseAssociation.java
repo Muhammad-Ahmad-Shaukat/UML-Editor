@@ -4,8 +4,9 @@ import ClassDiagram.Point;
 
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.Serializable;
 
-public class UseCaseAssociation {
+public class UseCaseAssociation implements Serializable {
     private Point start;
     private Point end;
     private UseCase useCase;
