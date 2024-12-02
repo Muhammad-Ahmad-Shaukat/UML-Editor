@@ -207,31 +207,60 @@ public class UseCaseDiagramCanvasController {
     }
 
     public void drawDottedLineWithArrow(Point startPoint, Point endPoint, String name, DependencyRelationship relationship) {
-        Line dottedLine = new Line(startPoint.getX(), startPoint.getY(), endPoint.getX(), endPoint.getY());
+        Point[] optimalPoints = findClosestPoints(startPoint, endPoint);
+        Point optimalStart = optimalPoints[0];
+        Point optimalEnd = optimalPoints[1];
+        Line dottedLine = new Line(optimalStart.getX(), optimalStart.getY(), optimalEnd.getX(), optimalEnd.getY());
         dottedLine.setStroke(Color.BLACK);
         dottedLine.getStrokeDashArray().addAll(10.0, 5.0);
         dottedLine.setStrokeWidth(2);
-        double angle = Math.atan2(endPoint.getY() - startPoint.getY(), endPoint.getX() - startPoint.getX());
+        double angle = Math.atan2(optimalEnd.getY() - optimalStart.getY(), optimalEnd.getX() - optimalStart.getX());
         double arrowLength = 10;
-        double x1 = endPoint.getX() - arrowLength * Math.cos(angle - Math.PI / 6);
-        double y1 = endPoint.getY() - arrowLength * Math.sin(angle - Math.PI / 6);
-        double x2 = endPoint.getX() - arrowLength * Math.cos(angle + Math.PI / 6);
-        double y2 = endPoint.getY() - arrowLength * Math.sin(angle + Math.PI / 6);
+        double x1 = optimalEnd.getX() - arrowLength * Math.cos(angle - Math.PI / 6);
+        double y1 = optimalEnd.getY() - arrowLength * Math.sin(angle - Math.PI / 6);
+        double x2 = optimalEnd.getX() - arrowLength * Math.cos(angle + Math.PI / 6);
+        double y2 = optimalEnd.getY() - arrowLength * Math.sin(angle + Math.PI / 6);
         Polygon arrowHead = new Polygon();
         arrowHead.getPoints().addAll(
-                endPoint.getX(), endPoint.getY(),
+                optimalEnd.getX(), optimalEnd.getY(),
                 x1, y1,
                 x2, y2
         );
         arrowHead.setFill(Color.BLACK);
-        double midX = (startPoint.getX() + endPoint.getX()) / 2;
-        double midY = (startPoint.getY() + endPoint.getY()) / 2;
+        double midX = ((optimalStart.getX() + optimalEnd.getX()) / 2) - 1;
+        double midY = ((optimalStart.getY() + optimalEnd.getY()) / 2) + 1;
         Text text = new Text(midX, midY, "<<" + name + ">>");
         text.setFill(Color.BLACK);
         text.getTransforms().add(new Rotate(Math.toDegrees(angle), midX, midY));
         text.setStyle("-fx-font-size: 14px; -fx-font-weight: bold;");
         canvasPane.getChildren().addAll(dottedLine, arrowHead, text);
         dottedLineComponentsMap.put(relationship, new DottedLineComponents(dottedLine, text, arrowHead));
+    }
+    private Point[] findClosestPoints(Point p1, Point p2) {
+        List<Point> p1Variants = new ArrayList<>();
+        p1Variants.add(new Point(p1.getX() + 50, p1.getY() + 10));
+        p1Variants.add(new Point(p1.getX() + 50, p1.getY() + 60));
+        p1Variants.add(new Point(p1.getX(), p1.getY() + 40));
+        p1Variants.add(new Point(p1.getX() + 100, p1.getY() + 40));
+        List<Point> p2Variants = new ArrayList<>();
+        p2Variants.add(new Point(p2.getX() + 50, p2.getY() + 10));
+        p2Variants.add(new Point(p2.getX() + 50, p2.getY() + 60));
+        p2Variants.add(new Point(p2.getX(), p2.getY() + 40));
+        p2Variants.add(new Point(p2.getX() + 100, p2.getY() + 40));
+        double shortestDistance = Double.MAX_VALUE;
+        Point optimalP1 = null;
+        Point optimalP2 = null;
+        for (Point variant1 : p1Variants) {
+            for (Point variant2 : p2Variants) {
+                double distance = calculateDistance(variant1, variant2);
+                if (distance < shortestDistance) {
+                    shortestDistance = distance;
+                    optimalP1 = variant1;
+                    optimalP2 = variant2;
+                }
+            }
+        }
+        return new Point[]{optimalP1, optimalP2};
     }
 
     public void drawInclude(Point initial, Point finalPoint) {
@@ -246,7 +275,6 @@ public class UseCaseDiagramCanvasController {
             showWarning("Error", "A dependency relationship already exists between these Use Cases");
             return;
         }
-
         DependencyRelationship include = new DependencyRelationship(startUseCase, endUseCase, "include");
         includeRelations.add(include);
         startUseCase.addAssociatedRelationship(include);
@@ -271,16 +299,11 @@ public class UseCaseDiagramCanvasController {
             showWarning("Error", "A dependency relationship already exists between these Use Cases");
             return;
         }
-
         DependencyRelationship exclude = new DependencyRelationship(startUseCase, endUseCase, "exclude");
         excludeRelations.add(exclude);
         startUseCase.addAssociatedRelationship(exclude);
         endUseCase.addAssociatedRelationship(exclude);
-        drawDottedLineWithArrow(
-                exclude.getStartUseCase().getInitialPoint(),
-                exclude.getEndUseCase().getInitialPoint(),
-                exclude.getDependencyType(),
-                exclude
+        drawDottedLineWithArrow(exclude.getStartUseCase().getInitialPoint(), exclude.getEndUseCase().getInitialPoint(), exclude.getDependencyType(), exclude
         );
     }
 
@@ -289,9 +312,6 @@ public class UseCaseDiagramCanvasController {
         UseCase startUseCase = checkUseCaseOnPoint(exclude.getStartUseCase().getInitialPoint());
         UseCase endUseCase = checkUseCaseOnPoint(exclude.getEndUseCase().getInitialPoint());
         if (startUseCase == null || endUseCase == null) {
-            return;
-        }
-        if (startUseCase.hasAnyRelationshipWith(endUseCase)) {
             return;
         }
         drawDottedLineWithArrow(exclude.getStartUseCase().getInitialPoint(), exclude.getEndUseCase().getInitialPoint(), exclude.getDependencyType(), exclude);
@@ -303,9 +323,6 @@ public class UseCaseDiagramCanvasController {
         UseCase startUseCase = checkUseCaseOnPoint(include.getStartUseCase().getInitialPoint());
         UseCase endUseCase = checkUseCaseOnPoint(include.getEndUseCase().getInitialPoint());
         if (startUseCase == null || endUseCase == null) {
-            return;
-        }
-        if (startUseCase.hasAnyRelationshipWith(endUseCase)) {
             return;
         }
         drawDottedLineWithArrow(include.getStartUseCase().getInitialPoint(),include.getEndUseCase().getInitialPoint(), include.getDependencyType(),include);
@@ -876,62 +893,46 @@ public class UseCaseDiagramCanvasController {
         stage.show();
     }
 
-    public void SerializeUseCaseDiagram() throws IOException {
-        try (FileOutputStream fs = new FileOutputStream("a.txt");
-             ObjectOutputStream os = new ObjectOutputStream(fs)) {
-            for (UseCase useCase : useCases) {
-                os.writeObject(useCase);
-            }
-            for (UseCaseActor actor : actors) {
-                os.writeObject(actor);
-            }
-            for (UseCaseAssociation a : associations) {
-                os.writeObject(a);
-            }
-            for (DependencyRelationship a : includeRelations) {
-                os.writeObject(a);
-            }
-            for (DependencyRelationship a : excludeRelations) {
-                os.writeObject(a);
+    public void handleUpload() {
+        FileChooser fileChooser = new FileChooser();
+        FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("BOTA files (*.bota)", "*.bota");
+        fileChooser.getExtensionFilters().add(extFilter);
+        File file = fileChooser.showOpenDialog(new Stage());
+        if (file != null) {
+            if (file.getName().endsWith(".bota")) {
+                try {
+                    UseCaseDiagramDeserializer.deserializeUseCaseDiagram(
+                            file.getAbsolutePath(),
+                            useCases, actors, associations, includeRelations, excludeRelations, boundaryBoxes
+                    );
+                    reDrawCanvas();
+                } catch (IOException | ClassNotFoundException e) {
+                    e.printStackTrace();
+                }
+            } else {
+                showWarning("Invalid File","Please select a .bota file");
             }
         }
     }
 
-    public void DeserializeUseCaseDiagram() throws IOException, ClassNotFoundException {
-        clearCanvas();
-        useCases = new ArrayList<>();
-        actors = new ArrayList<>();
-        associations = new ArrayList<>();
-        includeRelations = new ArrayList<>();
-        excludeRelations = new ArrayList<>();
-        boundaryBoxes = new ArrayList<>();
-        try (FileInputStream fs = new FileInputStream("a.txt");
-             ObjectInputStream os = new ObjectInputStream(fs)) {
-            while (true) {
-                try {
-                    Object obj = os.readObject();
-                    if (obj instanceof UseCase) {
-                        useCases.add((UseCase) obj);
-                    } else if (obj instanceof UseCaseActor) {
-                        actors.add((UseCaseActor) obj);
-                    } else if (obj instanceof UseCaseAssociation) {
-                        associations.add((UseCaseAssociation) obj);
-                    } else if (obj instanceof DependencyRelationship) {
-                        DependencyRelationship relationship = (DependencyRelationship) obj;
-                        if ("include".equalsIgnoreCase(relationship.getDependencyType())) {
-                            includeRelations.add(relationship);
-                        } else if ("exclude".equalsIgnoreCase(relationship.getDependencyType())) {
-                            excludeRelations.add(relationship);
-                        }
-                    } else if (obj instanceof UseCaseSystemBoundaryBox) {
-                        boundaryBoxes.add((UseCaseSystemBoundaryBox) obj);
-                    }
-                } catch (EOFException e) {
-                    break;
-                }
+    public void handleSave() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setInitialFileName("noob.bota");
+        FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("BOTA files (*.bota)", "*.bota");
+        fileChooser.getExtensionFilters().add(extFilter);
+        File file = fileChooser.showSaveDialog(new Stage());
+        if (file != null) {
+            if (!file.getName().endsWith(".bota")) {
+                file = new File(file.getAbsolutePath() + ".bota");
+            }
+            try {
+                UseCaseDiagramSerializer.serializeUseCaseDiagram(
+                        useCases, actors, associations, includeRelations, excludeRelations, file.getAbsolutePath()
+                );
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
-        reDrawCanvas();
     }
 
     private boolean isPointNearLine(Point point, Line line, double tolerance) {

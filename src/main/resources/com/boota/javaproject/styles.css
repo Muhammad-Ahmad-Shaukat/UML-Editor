@@ -91,3 +91,53 @@
 .modal-button.delete:hover {
     -fx-background-color: #d32f2f;
 }
+/* General styles for the layout */
+.root {
+    -fx-background-color: #f4f4f4;
+    -fx-padding: 20px;
+}
+
+/* Styling for the HBox */
+HBox {
+    -fx-alignment: center;
+    -fx-background-color: #2a3d47;
+    -fx-padding: 15px;
+    -fx-border-radius: 10px;
+    -fx-background-radius: 10px;
+}
+
+/* Custom styling for the buttons */
+.custom-button {
+    -fx-background-color: #4CAF50; /* Green */
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+    -fx-padding: 10px 20px;
+    -fx-border-radius: 5px;
+    -fx-background-radius: 5px;
+    -fx-cursor: hand;
+}
+
+.custom-button:hover {
+    -fx-background-color: #45a049; /* Darker Green */
+}
+
+/* Styling for the close button */
+.custom-close-button {
+    -fx-background-color: #f44336; /* Red */
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+    -fx-padding: 10px 20px;
+    -fx-border-radius: 5px;
+    -fx-background-radius: 5px;
+    -fx-cursor: hand;
+}
+
+.custom-close-button:hover {
+    -fx-background-color: #e53935; /* Darker Red */
+}
+
+/* Style for the labels or any other components if necessary */
+.label {
+    -fx-font-size: 16px;
+    -fx-text-fill: #333;
+}
