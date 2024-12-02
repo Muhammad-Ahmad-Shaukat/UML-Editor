@@ -2,8 +2,9 @@ package UseCaseDiagram;
 
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.Serializable;
 
-public class DependencyRelationship {
+public class DependencyRelationship implements Serializable {
     private String dependencyType;
     private UseCase startUseCase;
     private UseCase endUseCase;

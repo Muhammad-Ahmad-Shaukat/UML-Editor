@@ -2,10 +2,9 @@ package UseCaseDiagram;
 
 import ClassDiagram.Point;
 
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.Serializable;
 
-public class UseCaseActor {
+public class UseCaseActor implements Serializable {
     private String name;
     private Point initial;
 

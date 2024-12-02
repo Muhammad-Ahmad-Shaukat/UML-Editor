@@ -4,7 +4,9 @@ import javafx.scene.shape.Line;
 import javafx.scene.shape.Polygon;
 import javafx.scene.text.Text;
 
-public class DottedLineComponents {
+import java.io.Serializable;
+
+public class DottedLineComponents implements Serializable {
     private Line line;
     private Text text;
     private Polygon arrowHead;

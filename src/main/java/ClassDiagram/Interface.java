@@ -2,30 +2,26 @@ package ClassDiagram;
 
 import java.util.ArrayList;
 
-public class Class {
+public class Interface {
     String className;
-    ArrayList<Attribute> attributes;
     ArrayList<Function> functions;
     Point initialPoint;
     ArrayList<Class> InheritedClasses;
 
-    public Class(String className, Point initialPoint) {
+    public Interface(String className, Point initialPoint) {
         this.className = className;
         this.initialPoint = initialPoint;
-        attributes = new ArrayList<>();
         functions = new ArrayList<>();
     }
 
-    public Class(Point initialPoint) {
+    public Interface(Point initialPoint) {
         this.initialPoint = initialPoint;
-        attributes = new ArrayList<>();
         functions = new ArrayList<>();
         className = "Class";
     }
 
-    public Class(String className, ArrayList<Attribute> attributes, ArrayList<Function> functions, Point initialPoint) {
+    public Interface(String className, ArrayList<Attribute> attributes, ArrayList<Function> functions, Point initialPoint) {
         this.className = className;
-        this.attributes = attributes;
         this.functions = functions;
         this.initialPoint = initialPoint;
     }
@@ -36,14 +32,6 @@ public class Class {
 
     public void setClassName(String className) {
         this.className = className;
-    }
-
-    public ArrayList<Attribute> getAttributes() {
-        return attributes;
-    }
-
-    public void setAttributes(ArrayList<Attribute> attributes) {
-        this.attributes = attributes;
     }
 
     public ArrayList<Function> getFunctions() {
@@ -62,9 +50,6 @@ public class Class {
         this.initialPoint = initialPoint;
     }
 
-    void addAttribute(Attribute attribute) {
-        attributes.add(attribute);
-    }
 
     void addFunction(Function function) {
         functions.add(function);
@@ -74,17 +59,6 @@ public class Class {
         functions.remove(function);
     }
 
-    void removeAttribute(Attribute attribute) {
-        attributes.remove(attribute);
-    }
-
-    String returnAttribute() {
-        StringBuilder result = new StringBuilder();
-        for (Attribute attribute : attributes) {
-            result.append(attribute.toString()).append("\n");
-        }
-        return result.toString();
-    }
 
     String returnFunction() {
         StringBuilder result = new StringBuilder();
@@ -92,8 +66,5 @@ public class Class {
             result.append(function.toString()).append("\n");
         }
         return result.toString();
-    }
-    public void gernateCode(){
-
     }
 }
