@@ -1,7 +1,4 @@
 package UseCaseDiagram;
-
-import java.io.FileWriter;
-import java.io.IOException;
 import java.io.Serializable;
 
 public class DependencyRelationship implements Serializable {

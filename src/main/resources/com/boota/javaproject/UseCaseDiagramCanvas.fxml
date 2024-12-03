@@ -17,8 +17,8 @@
             <Button text="Exclude" onAction="#handleExcludeClick"/>
             <Button text="Snapshot" onAction="#handleSnapshot"/>
             <Button text="Clear Canvas" onAction="#clearCanvas"/>
-            <Button text="Save Diagram" onAction="#SerializeUseCaseDiagram"/>
-            <Button text="Upload File" onAction="#DeserializeUseCaseDiagram"/>
+            <Button text="Save Diagram" onAction="#handleSave"/>
+            <Button text="Upload File" onAction="#handleUpload"/>
         </HBox>
     </top>
     <center>
