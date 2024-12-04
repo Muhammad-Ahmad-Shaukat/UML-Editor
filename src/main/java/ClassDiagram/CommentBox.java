@@ -1,6 +1,8 @@
 package ClassDiagram;
 
-public class CommentBox {
+import java.io.Serializable;
+
+public class CommentBox implements Serializable {
     Point initialpoint;
     String comment;
     Double length;

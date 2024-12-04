@@ -1,6 +1,8 @@
 package ClassDiagram;
 
-public class ClassDiagramLine {
+import java.io.Serializable;
+
+public class ClassDiagramLine implements Serializable {
 
     Point start;
     Point end;

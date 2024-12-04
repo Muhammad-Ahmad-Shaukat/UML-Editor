@@ -12,8 +12,9 @@
     <top>
         <HBox spacing="10" style="-fx-padding: 10; -fx-background-color: #f0f0f0;">
             <Button text="Class" onAction="#handleClassButtonClick"/>
+            <Button text="Association" onAction="#handleAssociationClick"/>
+            <Button text="Clear" onAction="#clearCanvas"/>
             <Button text="Snap Diagram" onAction="#snapCanvas"/>
-            <Button text="Association" onAction="#handleAssociationButtonClick"/>
             <Button text="Inheritance" />
             <Button text="Interface" onAction="#interfacePressed"/>
         </HBox>

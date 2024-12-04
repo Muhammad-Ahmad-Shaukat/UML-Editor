@@ -1,8 +1,9 @@
 package ClassDiagram;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 
-public class Class {
+public class Class implements Serializable {
     String className;
     ArrayList<Attribute> attributes;
     ArrayList<Function> functions;
