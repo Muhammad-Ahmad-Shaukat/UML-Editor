@@ -106,4 +106,10 @@ public class Function {
 
         return prefix + name + "(" + attributesString + ") : " + returnType;
     }
+
+//    public String getCode(){
+//        if (accessModifier.equals("public")) {
+//            return "public " + returnType + " " + name + "(" ;
+//        }
+//    }
 }

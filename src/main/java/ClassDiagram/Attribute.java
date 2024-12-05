@@ -50,6 +50,17 @@ public class Attribute {
         };
     }
 
+    public String generateCode(){
+        if (accessModifier == "private"){
+            return "private " + dataType + " " + name + ";";
+        } else if (accessModifier == "public") {
+            return "public " + dataType + " " + name + ";";
+        }
+        else{
+            return "protected " + dataType + " " + name + ";";
+        }
+    }
+
     public void print() {
         System.out.println(name + " : " + dataType);
     }
