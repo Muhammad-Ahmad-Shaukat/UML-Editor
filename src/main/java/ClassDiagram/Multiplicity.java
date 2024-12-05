@@ -1,6 +1,8 @@
 package ClassDiagram;
 
-public class Multiplicity {
+import java.io.Serializable;
+
+public class Multiplicity implements Serializable {
     Double start;
     Double end;
 

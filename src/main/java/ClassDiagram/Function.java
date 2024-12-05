@@ -1,9 +1,10 @@
 package ClassDiagram;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.stream.Collectors;
 
-public class Function {
+public class Function implements Serializable {
     String name;
     String returnType;
     ArrayList<Attribute> attributes;
