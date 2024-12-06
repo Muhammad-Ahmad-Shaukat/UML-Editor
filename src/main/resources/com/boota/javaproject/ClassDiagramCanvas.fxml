@@ -15,8 +15,10 @@
             <Button text="Association" onAction="#handleAssociationClick"/>
             <Button text="Clear" onAction="#clearCanvas"/>
             <Button text="Snap Diagram" onAction="#snapCanvas"/>
-            <Button text="Inheritance" />
+            <Button text="Generalization" onAction="#handleGeneralizationClick"/>
             <Button text="Interface" onAction="#interfacePressed"/>
+            <Button text="Aggregation" onAction="#handleAggregationClick"/>
+            <Button text="Composition" onAction="#handleCompositionClick"/>
         </HBox>
     </top>
 

@@ -1,8 +1,6 @@
 package ClassDiagram;
 
-import javafx.geometry.Point2D;
 import javafx.scene.shape.Line;
-import javafx.scene.text.Text;
 
 import java.io.Serializable;
 
