@@ -7,20 +7,32 @@
             fx:controller="UseCaseDiagram.UseCaseDiagramCanvasController"
             stylesheets="@styles.css">
 
+    <!-- Top MenuBar -->
     <top>
-        <HBox spacing="10" style="-fx-padding: 10; -fx-background-color: #f0f0f0;">
-            <Button text="Actor" onAction="#handleActorClick"/>
-            <Button text="Association" onAction="#handleAssociationClick"/>
-            <Button text="UseCase" onAction="#handleUseCaseClick"/>
-            <Button text="BoundaryBox" onAction="#handleBoundaryBoxClick"/>
-            <Button text="Include" onAction="#handleIncludeClick"/>
-            <Button text="Exclude" onAction="#handleExcludeClick"/>
-            <Button text="Snapshot" onAction="#handleSnapshot"/>
-            <Button text="Clear Canvas" onAction="#clearCanvas"/>
-            <Button text="Save Diagram" onAction="#handleSave"/>
-            <Button text="Upload File" onAction="#handleUpload"/>
-        </HBox>
+        <MenuBar>
+            <Menu text="File">
+
+                <MenuItem text="Save Diagram" onAction="#handleSave"/>
+                <MenuItem text="Upload File" onAction="#handleUpload"/>
+                <SeparatorMenuItem/>
+
+            </Menu>
+        </MenuBar>
     </top>
+
+    <!-- Left Toolbar -->
+    <left>
+        <VBox spacing="5" style="-fx-padding: 5; -fx-background-color: #f0f0f0;">
+            <Button text="Actor" onAction="#handleActorClick" prefWidth="80" prefHeight="30"/>
+            <Button text="Association" onAction="#handleAssociationClick" prefWidth="80" prefHeight="30"/>
+            <Button text="Use Case" onAction="#handleUseCaseClick" prefWidth="80" prefHeight="30"/>
+            <Button text="Boundary Box" onAction="#handleBoundaryBoxClick" prefWidth="80" prefHeight="30"/>
+            <Button text="Include" onAction="#handleIncludeClick" prefWidth="80" prefHeight="30"/>
+            <Button text="Exclude" onAction="#handleExcludeClick" prefWidth="80" prefHeight="30"/>
+        </VBox>
+    </left>
+
+    <!-- Center Content -->
     <center>
         <Pane fx:id="canvasPane"/>
     </center>
