@@ -1142,11 +1142,8 @@ public class ClassDiagramCanvasController {
         if (file != null) {
             if (file.getName().endsWith(".nalla")) {
                 try {
-                    // Deserialize the class diagram data
                     Object[] deserializedData = ClassDiagramSerializer.deserialize(file.getAbsolutePath());
                     clearCanvas();
-
-                    // Add deserialized data to the ArrayLists
                     classes.addAll((List<Class>) deserializedData[0]);
                     associations.addAll((List<Association>) deserializedData[1]);
                     interfaces.addAll((List<Interface>) deserializedData[2]);
@@ -1173,5 +1170,12 @@ public class ClassDiagramCanvasController {
         compositeRelations.clear();
         associationMap.clear();
         compositeRelationMap.clear();
+    }
+
+    @FXML
+    private void handleCode(){
+        for (Class myClass : classes){
+            myClass.generateCode("hello.txt");
+        }
     }
 }

@@ -108,9 +108,29 @@ public class Function implements Serializable {
         return prefix + name + "(" + attributesString + ") : " + returnType;
     }
 
-//    public String getCode(){
-//        if (accessModifier.equals("public")) {
-//            return "public " + returnType + " " + name + "(" ;
-//        }
-//    }
+    public String generateCode() {
+        StringBuilder code = new StringBuilder();
+
+        // Generate the access modifier and return type
+        code.append(accessModifier.toLowerCase()).append(" ");
+        code.append(returnType).append(" ");
+        code.append(name).append("(");
+
+        // Add function parameters
+        for (int i = 0; i < attributes.size(); i++) {
+            if (i > 0) {
+                code.append(", ");
+            }
+            code.append(attributes.get(i).getDataType())
+                    .append(" ")
+                    .append(attributes.get(i).getName());
+        }
+
+        code.append(") {\n");
+        code.append("        // Function body\n");
+        code.append("    }\n");
+
+        return code.toString();
+    }
+
 }

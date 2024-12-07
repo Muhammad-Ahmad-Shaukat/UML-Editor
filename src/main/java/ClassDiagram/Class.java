@@ -1,5 +1,8 @@
 package ClassDiagram;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 
@@ -94,7 +97,25 @@ public class Class implements Serializable {
         }
         return result.toString();
     }
-    public void gernateCode(){
+    public void generateCode(String filePath) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
+            // Write class declaration
+            writer.write("public class " + className + " {\n");
 
+            // Write attributes
+            for (Attribute attribute : attributes) {
+                writer.write("    " + attribute.generateCode() + "\n");
+            }
+
+            // Write functions
+            for (Function function : functions) {
+                writer.write("    " + function.generateCode() + "\n");
+            }
+
+            writer.write("}\n"); // Close the class
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

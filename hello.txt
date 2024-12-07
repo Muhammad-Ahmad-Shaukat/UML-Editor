@@ -1,0 +1,8 @@
+public class janu {
+    public Double duck;
+    public Class kicbvghb;
+    private void boya(String param) {
+        // Function body
+    }
+
+}
