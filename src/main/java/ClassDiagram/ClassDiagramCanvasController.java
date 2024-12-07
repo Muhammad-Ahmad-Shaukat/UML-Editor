@@ -22,6 +22,7 @@ import javafx.scene.shape.Line;
 import javafx.scene.shape.Polygon;
 import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.text.Text;
+import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
@@ -36,21 +37,21 @@ public class ClassDiagramCanvasController {
     private Pane canvasPane;
     private Canvas canvas;
     private GraphicsContext gc;
-    private List<Class> classes = new ArrayList<>();
+    private final List<Class> classes = new ArrayList<>();
     private VBox selectedClassBox = null;
     private String activeTool = null;
-    private Map<String, BiConsumer<Double, Double>> drawActions = new HashMap<>();
-    private Map<Node, Object> elementMap = new HashMap<>();
-    private List<Interface> interfaces = new ArrayList<>();
+    private final Map<String, BiConsumer<Double, Double>> drawActions = new HashMap<>();
+    private final Map<Node, Object> elementMap = new HashMap<>();
+    private final List<Interface> interfaces = new ArrayList<>();
     private Node selectedNode = null;
     private Point initialMousePosition = null;
     private Line tempLine = null;
     private Point initialPoint = null;
-    private List<Association> associations = new ArrayList<>();
-    private List<CompositeRelations> compositeRelations = new ArrayList<>();
-    private List<Generalization> generalizations = new ArrayList<>();
-    private Map<Line,Association> associationMap = new HashMap<>();
-    private Map<Line,CompositeRelations> compositeRelationMap = new HashMap<>();
+    private final List<Association> associations = new ArrayList<>();
+    private final List<CompositeRelations> compositeRelations = new ArrayList<>();
+    private final List<Generalization> generalizations = new ArrayList<>();
+    private final Map<Line,Association> associationMap = new HashMap<>();
+    private final Map<Line,CompositeRelations> compositeRelationMap = new HashMap<>();
 
     @FXML
     public void initialize() {
@@ -107,13 +108,11 @@ public class ClassDiagramCanvasController {
             selectedNode.setLayoutX(selectedNode.getLayoutX() + deltaX);
             selectedNode.setLayoutY(selectedNode.getLayoutY() + deltaY);
             Object element = elementMap.get(selectedNode);
-            if (element instanceof ClassDiagram.Class) {
-                Class clazz = (ClassDiagram.Class) element;
+            if (element instanceof Class clazz) {
                 clazz.getInitialPoint().setX(clazz.getInitialPoint().getX() + deltaX);
                 clazz.getInitialPoint().setY(clazz.getInitialPoint().getY() + deltaY);
             }
-            else if (element instanceof Interface) {
-                Interface clazz = (Interface) element;
+            else if (element instanceof Interface clazz) {
                 clazz.getInitialPoint().setX(clazz.getInitialPoint().getX() + deltaX);
                 clazz.getInitialPoint().setY(clazz.getInitialPoint().getY() + deltaY);
             }
@@ -124,22 +123,22 @@ public class ClassDiagramCanvasController {
     }
 
     private void handleMouseReleased(MouseEvent event) {
-        if (tempLine != null && activeTool=="Association") {
+        if (tempLine != null && Objects.equals(activeTool, "Association")) {
             canvasPane.getChildren().remove(tempLine);
             tempLine = null;
             Point finalPoint = new Point(event.getX(), event.getY());
             drawAssociation(initialPoint, finalPoint);
-        } else if (tempLine != null && activeTool=="Aggregation") {
+        } else if (tempLine != null && Objects.equals(activeTool, "Aggregation")) {
             canvasPane.getChildren().remove(tempLine);
             tempLine = null;
             Point finalPoint = new Point(event.getX(), event.getY());
             drawAggregation(initialPoint, finalPoint);
-        }else if (tempLine != null && activeTool=="Composition") {
+        }else if (tempLine != null && Objects.equals(activeTool, "Composition")) {
             canvasPane.getChildren().remove(tempLine);
             tempLine = null;
             Point finalPoint = new Point(event.getX(), event.getY());
             drawComposition(initialPoint, finalPoint);
-        } else if (tempLine != null && activeTool=="Generalization") {
+        } else if (tempLine != null && Objects.equals(activeTool, "Generalization")) {
             canvasPane.getChildren().remove(tempLine);
             tempLine = null;
             Point finalPoint = new Point(event.getX(), event.getY());
@@ -1034,23 +1033,31 @@ public class ClassDiagramCanvasController {
                 new Label("Text:"), textField
         );
         dialog.getDialogPane().setContent(content);
-        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+        ButtonType deleteButtonType = new ButtonType("Delete", ButtonBar.ButtonData.LEFT);
+        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL, deleteButtonType);
         Optional<ButtonType> result = dialog.showAndWait();
-        if (result.isPresent() && result.get() == ButtonType.OK) {
-            try {
-                Double startStart = Double.parseDouble(startStartField.getText());
-                Double startEnd = Double.parseDouble(startEndField.getText());
-                Double endStart = Double.parseDouble(endStartField.getText());
-                Double endEnd = Double.parseDouble(endEndField.getText());
-                association.setStartMultiplicity(new Multiplicity(startStart, startEnd));
-                association.setEndMultiplicity(new Multiplicity(endStart, endEnd));
-                association.setText(textField.getText());
+        if (result.isPresent()) {
+            if (result.get() == ButtonType.OK) {
+                try {
+                    Double startStart = Double.parseDouble(startStartField.getText());
+                    Double startEnd = Double.parseDouble(startEndField.getText());
+                    Double endStart = Double.parseDouble(endStartField.getText());
+                    Double endEnd = Double.parseDouble(endEndField.getText());
+                    association.setStartMultiplicity(new Multiplicity(startStart, startEnd));
+                    association.setEndMultiplicity(new Multiplicity(endStart, endEnd));
+                    association.setText(textField.getText());
+                    reDrawCanvas();
+                } catch (NumberFormatException e) {
+                    showWarning("Invalid Input", "Please enter valid numbers for multiplicities.");
+                }
+            } else if (result.get() == deleteButtonType) {
+                associations.remove(association);
+                associationMap.remove(association);
                 reDrawCanvas();
-            } catch (NumberFormatException e) {
-                showWarning("Invalid Input", "Please enter valid numbers for multiplicities.");
             }
         }
     }
+
     private void showAggregationDetailsForm(CompositeRelations aggregation) {
         Dialog<ButtonType> dialog = new Dialog<>();
         dialog.setTitle("Edit Aggregation");
@@ -1086,23 +1093,31 @@ public class ClassDiagramCanvasController {
                 new Label("Text:"), textField
         );
         dialog.getDialogPane().setContent(content);
-        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+        ButtonType deleteButtonType = new ButtonType("Delete", ButtonBar.ButtonData.LEFT);
+        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL, deleteButtonType);
         Optional<ButtonType> result = dialog.showAndWait();
-        if (result.isPresent() && result.get() == ButtonType.OK) {
-            try {
-                Double startStart = Double.parseDouble(startStartField.getText());
-                Double startEnd = Double.parseDouble(startEndField.getText());
-                Double endStart = Double.parseDouble(endStartField.getText());
-                Double endEnd = Double.parseDouble(endEndField.getText());
-                aggregation.setStartMultiplicity(new Multiplicity(startStart, startEnd));
-                aggregation.setEndMultiplicity(new Multiplicity(endStart, endEnd));
-                aggregation.setText(textField.getText());
+        if (result.isPresent()) {
+            if (result.get() == ButtonType.OK) {
+                try {
+                    Double startStart = Double.parseDouble(startStartField.getText());
+                    Double startEnd = Double.parseDouble(startEndField.getText());
+                    Double endStart = Double.parseDouble(endStartField.getText());
+                    Double endEnd = Double.parseDouble(endEndField.getText());
+                    aggregation.setStartMultiplicity(new Multiplicity(startStart, startEnd));
+                    aggregation.setEndMultiplicity(new Multiplicity(endStart, endEnd));
+                    aggregation.setText(textField.getText());
+                    reDrawCanvas();
+                } catch (NumberFormatException e) {
+                    showWarning("Invalid Input", "Please enter valid numbers for multiplicities.");
+                }
+            } else if (result.get() == deleteButtonType) {
+                compositeRelations.remove(aggregation);
+                compositeRelationMap.remove(aggregation);
                 reDrawCanvas();
-            } catch (NumberFormatException e) {
-                showWarning("Invalid Input", "Please enter valid numbers for multiplicities.");
             }
         }
     }
+
 
     public void handleSave() {
         FileChooser fileChooser = new FileChooser();
@@ -1173,9 +1188,29 @@ public class ClassDiagramCanvasController {
     }
 
     @FXML
-    private void handleCode(){
-        for (Class myClass : classes){
-            myClass.generateCode("hello.txt");
+    private void handleCode() {
+        DirectoryChooser directoryChooser = new DirectoryChooser();
+        directoryChooser.setTitle("Select Directory to Save Java Files");
+        File selectedDirectory = directoryChooser.showDialog(null);
+        if (selectedDirectory != null) {
+            try {
+                File subFolder = new File(selectedDirectory, "GeneratedClasses");
+                if (!subFolder.exists()) {
+                    subFolder.mkdir();
+                }
+                for (Class myClass : classes) {
+                    String fileName = myClass.getClassName() + ".java";
+                    File javaFile = new File(subFolder, fileName);
+                    myClass.generateCode(javaFile.getAbsolutePath());
+                }
+                showAlert("File Saved Bhai", "Java files generated in: " + subFolder.getAbsolutePath(), Alert.AlertType.INFORMATION);
+
+            } catch (Exception e) {
+                showAlert("Error", "An error occurred while generating files: " + e.getMessage(), Alert.AlertType.ERROR);
+            }
+        } else {
+            showAlert("No Directory Selected", "Please select a directory to save the files.", Alert.AlertType.WARNING);
         }
     }
+
 }
