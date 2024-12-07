@@ -19,6 +19,8 @@
             <Button text="Interface" onAction="#interfacePressed"/>
             <Button text="Aggregation" onAction="#handleAggregationClick"/>
             <Button text="Composition" onAction="#handleCompositionClick"/>
+            <Button text="Save" onAction="#handleSave"/>
+            <Button text="Upload" onAction="#handleUpload"/>
         </HBox>
     </top>
 

@@ -1,8 +1,9 @@
 package ClassDiagram;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 
-public class Interface {
+public class Interface implements Serializable {
     String className;
     ArrayList<Function> functions;
     Point initialPoint;

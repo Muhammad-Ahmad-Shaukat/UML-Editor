@@ -1,5 +1,7 @@
 package ClassDiagram;
 
+import UseCaseDiagram.ClassDiagramSerializer;
+import UseCaseDiagram.UseCaseDiagramSerializer;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
@@ -21,12 +23,12 @@ import javafx.scene.shape.Line;
 import javafx.scene.shape.Polygon;
 import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.text.Text;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.io.File;
+import java.io.IOException;
+import java.util.*;
 import java.util.function.BiConsumer;
 
 
@@ -36,19 +38,21 @@ public class ClassDiagramCanvasController {
     private Pane canvasPane;
     private Canvas canvas;
     private GraphicsContext gc;
-    private ArrayList<ClassDiagram.Class> classes = new ArrayList<>();
+    private List<Class> classes = new ArrayList<>();
     private VBox selectedClassBox = null;
     private String activeTool = null;
     private Map<String, BiConsumer<Double, Double>> drawActions = new HashMap<>();
     private Map<Node, Object> elementMap = new HashMap<>();
-    private ArrayList<Interface> interfaces = new ArrayList<>();
+    private List<Interface> interfaces = new ArrayList<>();
     private Node selectedNode = null;
     private Point initialMousePosition = null;
     private Line tempLine = null;
     private Point initialPoint = null;
-    private ArrayList<Association> associations = new ArrayList<>();
-    private ArrayList<CompositeRelations> aggregations = new ArrayList<>();
-    private ArrayList<Generalization> generalizations = new ArrayList<>();
+    private List<Association> associations = new ArrayList<>();
+    private List<CompositeRelations> compositeRelations = new ArrayList<>();
+    private List<Generalization> generalizations = new ArrayList<>();
+    private Map<Line,Association> associationMap = new HashMap<>();
+    private  Map<Line,CompositeRelations> compositeRelationMap = new HashMap<>();
 
     @FXML
     public void initialize() {
@@ -150,19 +154,28 @@ public class ClassDiagramCanvasController {
     private void handleCanvasClick(MouseEvent event) {
         double x = event.getX();
         double y = event.getY();
-        for (Association association : associations) {
-            if (isNearLine(association.getLine(), x, y)) {
+        for (Map.Entry<Line, Association> entry : associationMap.entrySet()) {
+            Line line = entry.getKey();
+            Association association = entry.getValue();
+            if (isNearLine(line, x, y)) {
                 if (event.getClickCount() == 2) {
                     showAssociationDetailsForm(association);
+                    deselectClassBox();
                 }
                 return;
             }
         }
-        for (CompositeRelations aggregation : aggregations) {
-            if (isNearLine(aggregation.getLine(), x, y)) {
-                showAggregationDetailsForm(aggregation);
+        for (Map.Entry<Line, CompositeRelations> entry : compositeRelationMap.entrySet()) {
+            CompositeRelations relation = entry.getValue();
+            if (isNearLine(entry.getKey(), x, y)) {
+                    if (event.getClickCount() == 2) {
+                        showAggregationDetailsForm(relation);
+                    }
+                return;
             }
         }
+
+
         if (selectedClassBox != null && !isWithinBounds(selectedClassBox, x, y)) {
             deselectClassBox();
         }
@@ -170,18 +183,16 @@ public class ClassDiagramCanvasController {
             Node node = entry.getKey();
             if (isWithinBounds(node, x, y)) {
                 Object element = entry.getValue();
-                if (element instanceof ClassDiagram.Class) {
+                if (element instanceof ClassDiagram.Class clazz) {
                     if (event.getClickCount() == 2) {
-                        ClassDiagram.Class clazz = (ClassDiagram.Class) element;
                         showClassDetails(clazz);
                     } else {
                         selectClassBox((VBox) node);
                     }
                     return;
-                } else if (element instanceof Interface) {
+                } else if (element instanceof Interface iface) {
                     if (event.getClickCount() == 2) {
-                        ClassDiagram.Interface clazz = (ClassDiagram.Interface) element;
-                        showInterfaceDetails(clazz);
+                        showInterfaceDetails(iface);
                     } else {
                         selectClassBox((VBox) node);
                     }
@@ -197,22 +208,26 @@ public class ClassDiagramCanvasController {
         }
     }
 
+
     @FXML
     private void handleGeneralizationClick(){
         activeTool = "Generalization";
+        deselectClassBox();
     }
 
     public void reDrawCanvas() {
         canvasPane.getChildren().clear();
-
         ArrayList<Association> tempAssociation = new ArrayList<>(associations);
         ArrayList<Class> tempClasses = new ArrayList<>(classes);
         ArrayList<Interface> tempInterfaces = new ArrayList<>(interfaces);
-        ArrayList<CompositeRelations> tempAggregations = new ArrayList<>(aggregations);
+        ArrayList<CompositeRelations> tempAggregations = new ArrayList<>(compositeRelations);
         ArrayList<Generalization> tempGeneral = new ArrayList<>(generalizations);
+        associationMap.clear();
         classes.clear();
         associations.clear();
         interfaces.clear();
+        generalizations.clear();
+        compositeRelations.clear();
 
         for (Class myClass : tempClasses) {
             redrawClass(myClass);
@@ -220,45 +235,65 @@ public class ClassDiagramCanvasController {
         for (Interface myInterface : tempInterfaces) {
             reDrawInterface(myInterface);
         }
-        for (CompositeRelations myAggregation : tempAggregations) {
-            redrawAggregation(myAggregation);
-            if (myAggregation.getText() != null && !myAggregation.getText().isEmpty()) {
-                Text aggregationText = new Text(myAggregation.getText());
-                aggregationText.setX((myAggregation.getLine().getStartX() + myAggregation.getLine().getEndX()) / 2);
-                aggregationText.setY((myAggregation.getLine().getStartY() + myAggregation.getLine().getEndY()) / 2 - 10);
-                canvasPane.getChildren().add(aggregationText);
+        for (CompositeRelations r : tempAggregations) {
+            // Redraw the aggregation or composition line based on the type
+            if (r.getName().equals("aggregation")) {
+                redrawAggregation(r);
+            } else {
+                redrawComposition(r);
             }
-            if (myAggregation.getStartMultiplicity() != null) {
-                Text startMultiplicityText = new Text(myAggregation.getStartMultiplicity().toString());
-                startMultiplicityText.setX(myAggregation.getLine().getStartX() - 15);
-                startMultiplicityText.setY(myAggregation.getLine().getStartY() - 5);
+
+            // Draw the aggregation/composition text (e.g., relationship name or type) in the middle of the line
+            if (r.getName() != null && !r.getName().isEmpty()) {
+                Text relationText = new Text(r.getText()); // This could be aggregation or composition
+                Class startClass = r.getStartClass();
+                Class endClass = r.getEndClass();
+                double midX = (startClass.getInitialPoint().getX() + endClass.getInitialPoint().getX()) / 2;
+                double midY = (startClass.getInitialPoint().getY() + endClass.getInitialPoint().getY()) / 2;
+                relationText.setX(midX);
+                relationText.setY(midY - 10); // Slightly adjust the vertical position for better visibility
+                canvasPane.getChildren().add(relationText);
+            }
+
+            // Draw the multiplicity text for the start of the relation (if available)
+            if (r.getStartMultiplicity() != null) {
+                Text startMultiplicityText = new Text(r.getStartMultiplicity().toString());
+                startMultiplicityText.setX(r.getStartClass().getInitialPoint().getX() - 15);
+                startMultiplicityText.setY(r.getStartClass().getInitialPoint().getY() - 5);
                 canvasPane.getChildren().add(startMultiplicityText);
             }
-            if (myAggregation.getEndMultiplicity() != null) {
-                Text endMultiplicityText = new Text(myAggregation.getEndMultiplicity().toString());
-                endMultiplicityText.setX(myAggregation.getLine().getEndX() + 5);
-                endMultiplicityText.setY(myAggregation.getLine().getEndY() - 5);
+
+            // Draw the multiplicity text for the end of the relation (if available)
+            if (r.getEndMultiplicity() != null) {
+                Text endMultiplicityText = new Text(r.getEndMultiplicity().toString());
+                endMultiplicityText.setX(r.getEndClass().getInitialPoint().getX() + 5);
+                endMultiplicityText.setY(r.getEndClass().getInitialPoint().getY() - 5);
                 canvasPane.getChildren().add(endMultiplicityText);
             }
         }
-        for (Association a : tempAssociation) {
-            redrawAssociation(a);
-            if (a.getText() != null && !a.getText().isEmpty()) {
-                Text associationText = new Text(a.getText());
-                associationText.setX((a.getLine().getStartX() + a.getLine().getEndX()) / 2);
-                associationText.setY((a.getLine().getStartY() + a.getLine().getEndY()) / 2 - 10);
+
+        for (Association association : tempAssociation) {
+            redrawAssociation(association);
+            if (association.getText() != null && !association.getText().isEmpty()) {
+                Text associationText = new Text(association.getText());
+                Class startClass = association.getStartClass();
+                Class endClass = association.getEndClass();
+                double midX = (startClass.getInitialPoint().getX() + endClass.getInitialPoint().getX()) / 2;
+                double midY = (startClass.getInitialPoint().getY() + endClass.getInitialPoint().getY()) / 2;
+                associationText.setX(midX);
+                associationText.setY(midY - 10);
                 canvasPane.getChildren().add(associationText);
             }
-            if (a.getStartMultiplicity() != null) {
-                Text startMultiplicityText = new Text(a.getStartMultiplicity().toString());
-                startMultiplicityText.setX(a.getLine().getStartX() - 15);
-                startMultiplicityText.setY(a.getLine().getStartY() - 5);
+            if (association.getStartMultiplicity() != null) {
+                Text startMultiplicityText = new Text(association.getStartMultiplicity().toString());
+                startMultiplicityText.setX(association.getStartClass().getInitialPoint().getX() - 15);
+                startMultiplicityText.setY(association.getStartClass().getInitialPoint().getY() - 5);
                 canvasPane.getChildren().add(startMultiplicityText);
             }
-            if (a.getEndMultiplicity() != null) {
-                Text endMultiplicityText = new Text(a.getEndMultiplicity().toString());
-                endMultiplicityText.setX(a.getLine().getEndX() + 5);
-                endMultiplicityText.setY(a.getLine().getEndY() - 5);
+            if (association.getEndMultiplicity() != null) {
+                Text endMultiplicityText = new Text(association.getEndMultiplicity().toString());
+                endMultiplicityText.setX(association.getEndClass().getInitialPoint().getX() + 5);
+                endMultiplicityText.setY(association.getEndClass().getInitialPoint().getY() - 5);
                 canvasPane.getChildren().add(endMultiplicityText);
             }
         }
@@ -267,29 +302,34 @@ public class ClassDiagramCanvasController {
         }
     }
 
+    @FXML
+    private void handleAssociationClick(){activeTool = "Association";
+        deselectClassBox();}
 
     @FXML
-    private void handleAssociationClick(){activeTool = "Association";}
+    private void handleCompositionClick(){activeTool = "Composition";
+        deselectClassBox();}
 
-    @FXML
-    private void handleCompositionClick(){activeTool = "Composition";}
-
-    public void handleClassButtonClick() {activeTool = "Class";}
+    public void handleClassButtonClick() {activeTool = "Class";
+        deselectClassBox();}
 
     private void drawAssociation(Point initialPoint, Point finalPoint) {
         activeTool = null;
         Class startClass = getClassAtPoint(initialPoint);
         Class endClass = getClassAtPoint(finalPoint);
+        Line line = null;
         if (startClass != null && endClass != null) {
-            Line line = new Line(
-                    startClass.getInitialPoint().getX(), startClass.getInitialPoint().getY(),
-                    endClass.getInitialPoint().getX(), endClass.getInitialPoint().getY()
-            );
-            line.setStrokeWidth(2.0);
+            line = new Line();
+            line.setStartX(startClass.getInitialPoint().getX());
+            line.setStartY(startClass.getInitialPoint().getY());
+            line.setEndX(endClass.getInitialPoint().getX());
+            line.setEndY(endClass.getInitialPoint().getY());
+            line.setStrokeWidth(2);
+            line.setStroke(Color.BLACK);
             canvasPane.getChildren().add(line);
-            Association association = new Association(startClass, endClass);
-            association.setLine(line);
+            Association association= new Association(startClass,endClass);
             associations.add(association);
+            associationMap.put(line, association);
         } else {
             showWarning("Association Error", "Both endpoints must be inside a class.");
         }
@@ -301,102 +341,210 @@ public class ClassDiagramCanvasController {
         activeTool = null;
         Class startClass = getClassAtPoint(initialPoint);
         Class endClass = getClassAtPoint(finalPoint);
-        if (startClass != null && endClass != null) {
-            Line line = new Line(
-                    startClass.getInitialPoint().getX(), startClass.getInitialPoint().getY(),
-                    endClass.getInitialPoint().getX() - 5, endClass.getInitialPoint().getY()
-            );
-            line.setStrokeWidth(2.0);
-            Polygon diamond = createDiamond(
-                    endClass.getInitialPoint(),
-                    15,
-                    7
-            );
-            diamond.setStrokeWidth(2.0);
-            diamond.setStroke(Color.BLACK);
-            diamond.setFill(Color.TRANSPARENT);
-            canvasPane.getChildren().addAll(line, diamond);
-            CompositeRelations aggregation = new CompositeRelations(startClass, endClass, "Aggregation");
-            aggregation.setLine(line);
-            aggregation.setDiamond(diamond);
-            aggregations.add(aggregation);
-        } else {
+        if (startClass == null || endClass == null) {
             showWarning("Aggregation Error", "Both endpoints must be inside a class.");
+            return;
         }
+        Line line = new Line();
+        line.setStartX(startClass.getInitialPoint().getX());
+        line.setStartY(startClass.getInitialPoint().getY());
+        line.setEndX(endClass.getInitialPoint().getX());
+        line.setEndY(endClass.getInitialPoint().getY());
+        canvasPane.getChildren().add(line);
+        double dx = endClass.getInitialPoint().getX() - startClass.getInitialPoint().getX();
+        double dy = endClass.getInitialPoint().getY() - startClass.getInitialPoint().getY();
+        double length = Math.sqrt(dx * dx + dy * dy);
+        double unitX = dx / length;
+        double unitY = dy / length;
+        double diamondSize = 10.0;
+        double halfSize = diamondSize / 2;
+        double[] diamondX = new double[4];
+        double[] diamondY = new double[4];
+        double finalX = endClass.getInitialPoint().getX();
+        double finalY = endClass.getInitialPoint().getY();
+        diamondX[0] = finalX;
+        diamondY[0] = finalY;
+        diamondX[1] = finalX - unitX * diamondSize + unitY * halfSize;
+        diamondY[1] = finalY - unitY * diamondSize - unitX * halfSize;
+        diamondX[2] = finalX - unitX * diamondSize * 2;
+        diamondY[2] = finalY - unitY * diamondSize * 2;
+        diamondX[3] = finalX - unitX * diamondSize - unitY * halfSize;
+        diamondY[3] = finalY - unitY * diamondSize + unitX * halfSize;
+        Polygon diamond = new Polygon();
+        diamond.getPoints().addAll(diamondX[0], diamondY[0],
+                diamondX[1], diamondY[1],
+                diamondX[2], diamondY[2],
+                diamondX[3], diamondY[3]);
+        diamond.setStroke(Color.BLACK);
+        diamond.setFill(null);
+        canvasPane.getChildren().add(diamond);
+        CompositeRelations x = new CompositeRelations(startClass, endClass, "aggregation");
+        compositeRelations.add(x);
+        compositeRelationMap.put(line, x);
     }
-
-    public void drawGeneralization(Point initialPoint, Point finalPoint) {
-        activeTool = null;
-        Class startClass = getClassAtPoint(initialPoint);
-        Class endClass = getClassAtPoint(finalPoint);
-        if (startClass != null && endClass != null) {
-            Line line = new Line();
-            line.getStrokeDashArray().addAll(10.0, 5.0);
-            line.setStroke(Color.BLACK);
-            line.setStrokeWidth(2.0);
-            line.setStrokeLineCap(StrokeLineCap.ROUND);
-            Polygon arrowHead = new Polygon();
-            arrowHead.setFill(Color.TRANSPARENT);
-            arrowHead.setStroke(Color.BLACK);
-            arrowHead.setStrokeWidth(2.0);
-            Generalization generalization = new Generalization(startClass, endClass, line, arrowHead);
-            generalizations.add(generalization);
-            generalization.updateLine();
-            canvasPane.getChildren().addAll(line, arrowHead);
-        } else {
-            showWarning("Generalization Error", "Both endpoints must be inside a class.");
-        }
-    }
-
 
 
     public void drawComposition(Point initialPoint, Point finalPoint){
         activeTool = null;
         Class startClass = getClassAtPoint(initialPoint);
         Class endClass = getClassAtPoint(finalPoint);
-        if (startClass != null && endClass != null) {
-            Line line = new Line(
-                    startClass.getInitialPoint().getX(), startClass.getInitialPoint().getY(),
-                    endClass.getInitialPoint().getX() - 5, endClass.getInitialPoint().getY()
-            );
-            line.setStrokeWidth(2.0);
-            Polygon diamond = createDiamond(
-                    endClass.getInitialPoint(),
-                    15,
-                    7
-            );
-            diamond.setStrokeWidth(2.0);
-            diamond.setStroke(Color.BLACK);
-            diamond.setFill(Color.BLACK);
-            canvasPane.getChildren().addAll(line, diamond);
-            CompositeRelations aggregation = new CompositeRelations(startClass, endClass, "Composition");
-            aggregation.setLine(line);
-            aggregation.setDiamond(diamond);
-            aggregations.add(aggregation);
-        } else {
+        if (startClass == null || endClass == null) {
             showWarning("Aggregation Error", "Both endpoints must be inside a class.");
+            return;
         }
+        Line line = new Line();
+        line.setStartX(startClass.getInitialPoint().getX());
+        line.setStartY(startClass.getInitialPoint().getY());
+        line.setEndX(endClass.getInitialPoint().getX());
+        line.setEndY(endClass.getInitialPoint().getY());
+        canvasPane.getChildren().add(line);
+        double dx = endClass.getInitialPoint().getX() - startClass.getInitialPoint().getX();
+        double dy = endClass.getInitialPoint().getY() - startClass.getInitialPoint().getY();
+        double length = Math.sqrt(dx * dx + dy * dy);
+        double unitX = dx / length;
+        double unitY = dy / length;
+        double diamondSize = 10.0;
+        double halfSize = diamondSize / 2;
+        double[] diamondX = new double[4];
+        double[] diamondY = new double[4];
+        double finalX = endClass.getInitialPoint().getX();
+        double finalY = endClass.getInitialPoint().getY();
+        diamondX[0] = finalX;
+        diamondY[0] = finalY;
+        diamondX[1] = finalX - unitX * diamondSize + unitY * halfSize;
+        diamondY[1] = finalY - unitY * diamondSize - unitX * halfSize;
+        diamondX[2] = finalX - unitX * diamondSize * 2;
+        diamondY[2] = finalY - unitY * diamondSize * 2;
+        diamondX[3] = finalX - unitX * diamondSize - unitY * halfSize;
+        diamondY[3] = finalY - unitY * diamondSize + unitX * halfSize;
+        Polygon diamond = new Polygon();
+        diamond.getPoints().addAll(diamondX[0], diamondY[0],
+                diamondX[1], diamondY[1],
+                diamondX[2], diamondY[2],
+                diamondX[3], diamondY[3]);
+        diamond.setStroke(Color.BLACK);
+        diamond.setFill(Color.BLACK);
+        canvasPane.getChildren().add(diamond);
+        CompositeRelations x = new CompositeRelations(startClass, endClass, "composition");
+        compositeRelations.add(x);
+        compositeRelationMap.put(line, x);
     }
 
-    private Polygon createDiamond(Point position, double width, double height) {
+    private void redrawAggregation(CompositeRelations aggregation) {
+        activeTool = null;
+        Class startClass = getClassAtPoint(aggregation.startClass.getInitialPoint());
+        Class endClass = getClassAtPoint(aggregation.endClass.getInitialPoint());
+        if (startClass == null || endClass == null) {
+            showWarning("Aggregation Error", "Both endpoints must be inside a class.");
+            return;
+        }
+        Line line = new Line();
+        line.setStartX(startClass.getInitialPoint().getX());
+        line.setStartY(startClass.getInitialPoint().getY());
+        line.setEndX(endClass.getInitialPoint().getX());
+        line.setEndY(endClass.getInitialPoint().getY());
+        canvasPane.getChildren().add(line);
+        double dx = endClass.getInitialPoint().getX() - startClass.getInitialPoint().getX();
+        double dy = endClass.getInitialPoint().getY() - startClass.getInitialPoint().getY();
+        double length = Math.sqrt(dx * dx + dy * dy);
+        double unitX = dx / length;
+        double unitY = dy / length;
+        double diamondSize = 10.0;
+        double halfSize = diamondSize / 2;
+        double[] diamondX = new double[4];
+        double[] diamondY = new double[4];
+        double finalX = endClass.getInitialPoint().getX();
+        double finalY = endClass.getInitialPoint().getY();
+        diamondX[0] = finalX;
+        diamondY[0] = finalY;
+        diamondX[1] = finalX - unitX * diamondSize + unitY * halfSize;
+        diamondY[1] = finalY - unitY * diamondSize - unitX * halfSize;
+        diamondX[2] = finalX - unitX * diamondSize * 2;
+        diamondY[2] = finalY - unitY * diamondSize * 2;
+        diamondX[3] = finalX - unitX * diamondSize - unitY * halfSize;
+        diamondY[3] = finalY - unitY * diamondSize + unitX * halfSize;
         Polygon diamond = new Polygon();
-        double centerX = position.getX();
-        double centerY = position.getY();
-        double x1 = centerX - height;
-        double y1 = centerY;
-        double x2 = centerX;
-        double y2 = centerY - (width / 2);
-        double x3 = centerX + height;
-        double y3 = centerY;
-        double x4 = centerX;
-        double y4 = centerY + (width / 2);
-        diamond.getPoints().addAll(
-                x1, y1,
-                x2, y2,
-                x3, y3,
-                x4, y4
-        );
-        return diamond;
+        diamond.getPoints().addAll(diamondX[0], diamondY[0],
+                diamondX[1], diamondY[1],
+                diamondX[2], diamondY[2],
+                diamondX[3], diamondY[3]);
+        diamond.setStroke(Color.BLACK);
+        diamond.setFill(null);
+        canvasPane.getChildren().add(diamond);
+        compositeRelations.add(aggregation);
+        compositeRelationMap.put(line, aggregation);
+    }
+
+
+    public void redrawComposition(CompositeRelations aggregation){
+        activeTool = null;
+        Class startClass = getClassAtPoint(aggregation.startClass.getInitialPoint());
+        Class endClass = getClassAtPoint(aggregation.endClass.getInitialPoint());
+        if (startClass == null || endClass == null) {
+            showWarning("Aggregation Error", "Both endpoints must be inside a class.");
+            return;
+        }
+        Line line = new Line();
+        line.setStartX(startClass.getInitialPoint().getX());
+        line.setStartY(startClass.getInitialPoint().getY());
+        line.setEndX(endClass.getInitialPoint().getX());
+        line.setEndY(endClass.getInitialPoint().getY());
+        canvasPane.getChildren().add(line);
+        double dx = endClass.getInitialPoint().getX() - startClass.getInitialPoint().getX();
+        double dy = endClass.getInitialPoint().getY() - startClass.getInitialPoint().getY();
+        double length = Math.sqrt(dx * dx + dy * dy);
+        double unitX = dx / length;
+        double unitY = dy / length;
+        double diamondSize = 10.0;
+        double halfSize = diamondSize / 2;
+        double[] diamondX = new double[4];
+        double[] diamondY = new double[4];
+        double finalX = endClass.getInitialPoint().getX();
+        double finalY = endClass.getInitialPoint().getY();
+        diamondX[0] = finalX;
+        diamondY[0] = finalY;
+        diamondX[1] = finalX - unitX * diamondSize + unitY * halfSize;
+        diamondY[1] = finalY - unitY * diamondSize - unitX * halfSize;
+        diamondX[2] = finalX - unitX * diamondSize * 2;
+        diamondY[2] = finalY - unitY * diamondSize * 2;
+        diamondX[3] = finalX - unitX * diamondSize - unitY * halfSize;
+        diamondY[3] = finalY - unitY * diamondSize + unitX * halfSize;
+        Polygon diamond = new Polygon();
+        diamond.getPoints().addAll(diamondX[0], diamondY[0],
+                diamondX[1], diamondY[1],
+                diamondX[2], diamondY[2],
+                diamondX[3], diamondY[3]);
+        diamond.setStroke(Color.BLACK);
+        diamond.setFill(Color.BLACK);
+        canvasPane.getChildren().add(diamond);
+        compositeRelations.add(aggregation);
+        compositeRelationMap.put(line, aggregation);
+    }
+
+    public void drawGeneralization(Point initialPoint, Point finalPoint) {
+        activeTool=null;
+        ClassDiagram.Class startClass = getClassAtPoint(initialPoint);
+        ClassDiagram.Class endClass = getClassAtPoint(finalPoint);
+        if (startClass == null || endClass == null) {
+            System.out.println("Generalization must connect two valid classes.");
+            return;
+        }
+        Line dottedLine = new Line(startClass.getInitialPoint().getX(), startClass.getInitialPoint().getY(), endClass.getInitialPoint().getX(), endClass.getInitialPoint().getY());
+        dottedLine.getStrokeDashArray().addAll(10.0, 5.0);
+        Polygon arrowHead = new Polygon();
+        double arrowSize = 10.0;
+        double angle = Math.atan2(finalPoint.getY() - initialPoint.getY(), finalPoint.getX() - initialPoint.getX());
+        double sin = Math.sin(angle);
+        double cos = Math.cos(angle);
+        double x1 = finalPoint.getX() - arrowSize * cos - arrowSize / 2 * sin;
+        double y1 = finalPoint.getY() - arrowSize * sin + arrowSize / 2 * cos;
+        double x2 = finalPoint.getX() - arrowSize * cos + arrowSize / 2 * sin;
+        double y2 = finalPoint.getY() - arrowSize * sin - arrowSize / 2 * cos;
+        arrowHead.getPoints().addAll(finalPoint.getX(), finalPoint.getY(), x1, y1, x2, y2);
+        arrowHead.setFill(Color.BLACK);
+        canvasPane.getChildren().addAll(dottedLine, arrowHead);
+        Generalization generalization = new Generalization(startClass, endClass);
+        generalizations.add(generalization);
     }
 
     private void drawClass(double x, double y) {
@@ -752,154 +900,51 @@ public class ClassDiagramCanvasController {
     private void redrawAssociation(Association association) {
         Point startPoint = association.getStartClass().getInitialPoint();
         Point endPoint = association.getEndClass().getInitialPoint();
-        ClassDiagram.Class startClass = getClassAtPoint(startPoint);
-        ClassDiagram.Class endClass = getClassAtPoint(endPoint);
+        Class startClass = getClassAtPoint(startPoint);
+        Class endClass = getClassAtPoint(endPoint);
+        Line line = null;
         if (startClass != null && endClass != null) {
-            Line line = association.getLine();
-            line.setStartX(startClass.getInitialPoint().getX());
-            line.setStartY(startClass.getInitialPoint().getY());
-            line.setEndX(endClass.getInitialPoint().getX());
-            line.setEndY(endClass.getInitialPoint().getY());
-            if (!canvasPane.getChildren().contains(line)) {
-                canvasPane.getChildren().add(line);
-            }
+            line = new Line();
+            line.setStartX(association.getStartClass().getInitialPoint().getX());
+            line.setStartY(association.getStartClass().getInitialPoint().getY());
+            line.setEndX(association.getEndClass().getInitialPoint().getX());
+            line.setEndY(association.getEndClass().getInitialPoint().getY());
+            line.setStrokeWidth(2);
+            line.setStroke(Color.BLACK);
+            canvasPane.getChildren().add(line);
         } else {
-            Line line = association.getLine();
-            if (canvasPane.getChildren().contains(line)) {
-                canvasPane.getChildren().remove(line);
-            }
             showWarning("Redraw Error", "One or both associated classes no longer exist at their original positions.");
             return;
         }
         associations.add(association);
+        associationMap.put(line, association);
     }
 
-    private void redrawGeneralization(Generalization generalization) {
-        Point startPoint = generalization.getStartClass().getInitialPoint();
-        Point endPoint = generalization.getEndClass().getInitialPoint();
-        ClassDiagram.Class startClass = getClassAtPoint(startPoint);
-        ClassDiagram.Class endClass = getClassAtPoint(endPoint);
-
-        if (startClass != null && endClass != null) {
-            // Update the line
-            Line line = generalization.getLine();
-            line.setStartX(startClass.getInitialPoint().getX());
-            line.setStartY(startClass.getInitialPoint().getY());
-            line.setEndX(endClass.getInitialPoint().getX());
-            line.setEndY(endClass.getInitialPoint().getY());
-
-            // Update the arrowhead
-            generalization.updateLine(); // This will also update the arrowhead position
-
-            // Add the line and arrowhead to the canvas if not already present
-            if (!canvasPane.getChildren().contains(line)) {
-                canvasPane.getChildren().add(line);
-            }
-
-            Polygon arrowHead = generalization.getArrowHead();
-            if (!canvasPane.getChildren().contains(arrowHead)) {
-                canvasPane.getChildren().add(arrowHead);
-            }
-        } else {
-            // Remove from canvas if the classes are no longer valid
-            Line line = generalization.getLine();
-            Polygon arrowHead = generalization.getArrowHead();
-
-            if (canvasPane.getChildren().contains(line)) {
-                canvasPane.getChildren().remove(line);
-            }
-            if (canvasPane.getChildren().contains(arrowHead)) {
-                canvasPane.getChildren().remove(arrowHead);
-            }
-            showWarning("Redraw Error", "One or both classes in the generalization no longer exist.");
+    public void redrawGeneralization(Generalization generalization) {
+        activeTool = null;
+        ClassDiagram.Class startClass = generalization.getStartClass();
+        ClassDiagram.Class endClass = generalization.getEndClass();
+        if (startClass == null || endClass == null) {
+            System.out.println("Cannot redraw generalization: One or both classes are null.");
+            return;
         }
-    }
-
-
-    private void redrawAggregation(CompositeRelations aggregation) {
-        Point startPoint = aggregation.getStartClass().getInitialPoint();
-        Point endPoint = aggregation.getEndClass().getInitialPoint();
-        Class startClass = getClassAtPoint(startPoint);
-        Class endClass = getClassAtPoint(endPoint);
-        if (startClass != null && endClass != null) {
-            Line line = aggregation.getLine();
-            line.setStartX(startClass.getInitialPoint().getX());
-            line.setStartY(startClass.getInitialPoint().getY());
-            line.setEndX(endClass.getInitialPoint().getX());
-            line.setEndY(endClass.getInitialPoint().getY());
-            Polygon diamond = aggregation.getDiamond();
-            updateDiamondPosition(diamond, endClass.getInitialPoint(), 10, 6);
-            if (!canvasPane.getChildren().contains(line)) {
-                canvasPane.getChildren().add(line);
-            }
-            if (!canvasPane.getChildren().contains(diamond)) {
-                canvasPane.getChildren().add(diamond);
-            }
-        } else {
-            Line line = aggregation.getLine();
-            Polygon diamond = aggregation.getDiamond();
-            if (canvasPane.getChildren().contains(line)) {
-                canvasPane.getChildren().remove(line);
-            }
-            if (canvasPane.getChildren().contains(diamond)) {
-                canvasPane.getChildren().remove(diamond);
-            }
-            showWarning("Redraw Error", "One or both associated classes no longer exist at their original positions.");
-        }
-    }
-
-    public void redrawComposition(CompositeRelations aggregation){
-        Point startPoint = aggregation.getStartClass().getInitialPoint();
-        Point endPoint = aggregation.getEndClass().getInitialPoint();
-        Class startClass = getClassAtPoint(startPoint);
-        Class endClass = getClassAtPoint(endPoint);
-        if (startClass != null && endClass != null) {
-            Line line = aggregation.getLine();
-            line.setStartX(startClass.getInitialPoint().getX());
-            line.setStartY(startClass.getInitialPoint().getY());
-            line.setEndX(endClass.getInitialPoint().getX());
-            line.setEndY(endClass.getInitialPoint().getY());
-            Polygon diamond = aggregation.getDiamond();
-            updateDiamondPosition(diamond, endClass.getInitialPoint(), 10, 6);
-            if (!canvasPane.getChildren().contains(line)) {
-                canvasPane.getChildren().add(line);
-            }
-            if (!canvasPane.getChildren().contains(diamond)) {
-                canvasPane.getChildren().add(diamond);
-            }
-        } else {
-            Line line = aggregation.getLine();
-            Polygon diamond = aggregation.getDiamond();
-            if (canvasPane.getChildren().contains(line)) {
-                canvasPane.getChildren().remove(line);
-            }
-            if (canvasPane.getChildren().contains(diamond)) {
-                canvasPane.getChildren().remove(diamond);
-            }
-            showWarning("Redraw Error", "One or both associated classes no longer exist at their original positions.");
-        }
-    }
-
-    private void updateDiamondPosition(Polygon diamond, Point position, double width, double height) {
-        double centerX = position.getX();
-        double centerY = position.getY();
-
-        // Diamond vertices
-        double x1 = centerX - height;       // Left point
-        double y1 = centerY;
-        double x2 = centerX;                // Top point
-        double y2 = centerY - (width / 2);
-        double x3 = centerX + height;       // Right point
-        double y3 = centerY;
-        double x4 = centerX;                // Bottom point
-        double y4 = centerY + (width / 2);
-
-        diamond.getPoints().setAll(
-                x1, y1,
-                x2, y2,
-                x3, y3,
-                x4, y4
-        );
+        Point startPoint = new Point(generalization.getStartClass().getInitialPoint().getX(), generalization.getStartClass().getInitialPoint().getY());
+        Point endPoint = new Point(generalization.getEndClass().getInitialPoint().getX(), generalization.getEndClass().getInitialPoint().getY());
+        Line dottedLine = new Line(startPoint.getX(), startPoint.getY(), endPoint.getX(), endPoint.getY());
+        dottedLine.getStrokeDashArray().addAll(10.0, 5.0);
+        Polygon arrowHead = new Polygon();
+        double arrowSize = 10.0;
+        double angle = Math.atan2(endPoint.getY() - startPoint.getY(), endPoint.getX() - startPoint.getX());
+        double sin = Math.sin(angle);
+        double cos = Math.cos(angle);
+        double x1 = endPoint.getX() - arrowSize * cos - arrowSize / 2 * sin;
+        double y1 = endPoint.getY() - arrowSize * sin + arrowSize / 2 * cos;
+        double x2 = endPoint.getX() - arrowSize * cos + arrowSize / 2 * sin;
+        double y2 = endPoint.getY() - arrowSize * sin - arrowSize / 2 * cos;
+        arrowHead.getPoints().addAll(endPoint.getX(), endPoint.getY(), x1, y1, x2, y2);
+        arrowHead.setFill(Color.BLACK);
+        canvasPane.getChildren().addAll(dottedLine, arrowHead);
+        generalizations.add(generalization);
     }
 
 
@@ -998,6 +1043,7 @@ public class ClassDiagramCanvasController {
 
     private void showAssociationDetailsForm(Association association) {
         Dialog<ButtonType> dialog = new Dialog<>();
+        deselectClassBox();
         dialog.setTitle("Edit Association");
         dialog.setHeaderText("Edit Multiplicity and Text for Association");
         VBox content = new VBox(10);
@@ -1101,6 +1147,68 @@ public class ClassDiagramCanvasController {
         }
     }
 
+    public void handleSave() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Save Class Diagram");
+        fileChooser.setInitialFileName("diagram.nalla");
+        FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("Nalla files (*.nalla)", "*.nalla");
+        fileChooser.getExtensionFilters().add(extFilter);
+        File file = fileChooser.showSaveDialog(null);
+        if (file != null) {
+            if (!file.getName().endsWith(".nalla")) {
+                file = new File(file.getAbsolutePath() + ".nalla");
+            }
+            try {
+                ClassDiagramSerializer.serialize(classes, associations, interfaces, compositeRelations, generalizations, file.getAbsolutePath());
+                showAlert("Success", "File saved successfully!", Alert.AlertType.INFORMATION);
+            } catch (IOException e) {
+                e.printStackTrace();
+                showAlert("Error", "Failed to save the file: " + e.getMessage(), Alert.AlertType.ERROR);
+            }
+        }
+    }
+
+    private void showAlert(String title, String message, Alert.AlertType alertType) {
+        Alert alert = new Alert(alertType);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
+
+    public void handleUpload() {
+        FileChooser fileChooser = new FileChooser();
+        FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("Class Diagram files (*.nalla)", "*.nalla");
+        fileChooser.getExtensionFilters().add(extFilter);
+        File file = fileChooser.showOpenDialog(new Stage());
+
+        if (file != null) {
+            if (file.getName().endsWith(".nalla")) {
+                try {
+                    // Deserialize the class diagram data
+                    Object[] deserializedData = ClassDiagramSerializer.deserialize(file.getAbsolutePath());
+                    clearCanvas();
+
+                    // Add deserialized data to the ArrayLists
+                    classes.addAll((List<Class>) deserializedData[0]);
+                    associations.addAll((List<Association>) deserializedData[1]);
+                    interfaces.addAll((List<Interface>) deserializedData[2]);
+                    compositeRelations.addAll((List<CompositeRelations>) deserializedData[3]);
+                    generalizations.addAll((List<Generalization>) deserializedData[4]);
+                    reDrawCanvas();
+
+                } catch (IOException | ClassNotFoundException e) {
+                    e.printStackTrace();
+                    showWarning("Error", "An error occurred while loading the class diagram.");
+                }
+            } else {
+                showWarning("Invalid File", "Please select a .nalla file.");
+            }
+        }
+    }
+
+
+
     @FXML
     private void clearCanvas(){
         canvasPane.getChildren().clear();
@@ -1108,6 +1216,8 @@ public class ClassDiagramCanvasController {
         elementMap.clear();
         interfaces.clear();
         associations.clear();
-        aggregations.clear();
+        compositeRelations.clear();
+        associationMap.clear();
+        compositeRelationMap.clear();
     }
 }

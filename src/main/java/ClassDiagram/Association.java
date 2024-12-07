@@ -1,6 +1,5 @@
 package ClassDiagram;
 
-import javafx.scene.shape.Line;
 
 import java.io.Serializable;
 
@@ -11,42 +10,27 @@ public class Association implements Serializable {
     private String text;
     Class startClass;
     Class endClass;
-    Line line;
 
     public Association(Class startClass, Class endClass) {
         this.startClass = startClass;
         this.endClass = endClass;
-        this.line = new Line();
-        updateLine();
     }
 
-
-
-    public Association(Multiplicity startMultiplicity, Multiplicity endMultiplicity, String text, Class startClass, Class endClass, Line line) {
+    public Association(Multiplicity startMultiplicity, Multiplicity endMultiplicity, String text, Class startClass, Class endClass) {
         this.startMultiplicity = startMultiplicity;
         this.endMultiplicity = endMultiplicity;
         this.text = text;
         this.startClass = startClass;
         this.endClass = endClass;
-        this.line = line;
     }
 
-    public Association(Multiplicity startMultiplicity, Multiplicity endMultiplicity, Class startClass, Class endClass, Line line) {
+    public Association(Multiplicity startMultiplicity, Multiplicity endMultiplicity, Class startClass, Class endClass) {
         this.startMultiplicity = startMultiplicity;
         this.endMultiplicity = endMultiplicity;
         this.startClass = startClass;
         this.endClass = endClass;
-        this.line = line;
     }
 
-    public void updateLine() {
-        if (startClass != null && endClass != null) {
-            line.setStartX(startClass.getInitialPoint().getX());
-            line.setStartY(startClass.getInitialPoint().getY());
-            line.setEndX(endClass.getInitialPoint().getX());
-            line.setEndY(endClass.getInitialPoint().getY());
-        }
-    }
 
     public Multiplicity getStartMultiplicity() {
         return startMultiplicity;
@@ -88,12 +72,5 @@ public class Association implements Serializable {
         this.endClass = endClass;
     }
 
-    public Line getLine() {
-        return line;
-    }
-
-    public void setLine(Line line) {
-        this.line = line;
-    }
 }
 
