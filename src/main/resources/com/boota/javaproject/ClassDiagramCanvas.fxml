@@ -1,32 +1,40 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.layout.BorderPane?>
-<?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.Pane?>
-<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
 
 <BorderPane xmlns:fx="http://javafx.com/fxml"
             fx:controller="ClassDiagram.ClassDiagramCanvasController"
             stylesheets="@styles.css">
 
+    <!-- Top MenuBar -->
     <top>
-        <HBox spacing="10" style="-fx-padding: 10; -fx-background-color: #f0f0f0;">
-            <Button text="Class" onAction="#handleClassButtonClick"/>
-            <Button text="Association" onAction="#handleAssociationClick"/>
-            <Button text="Clear" onAction="#clearCanvas"/>
-            <Button text="Snap Diagram" onAction="#snapCanvas"/>
-            <Button text="Generalization" onAction="#handleGeneralizationClick"/>
-            <Button text="Interface" onAction="#interfacePressed"/>
-            <Button text="Aggregation" onAction="#handleAggregationClick"/>
-            <Button text="Composition" onAction="#handleCompositionClick"/>
-            <Button text="Save" onAction="#handleSave"/>
-            <Button text="Upload" onAction="#handleUpload"/>
-            <Button text="Code Gen" onAction="#handleCode"/>
-        </HBox>
+        <MenuBar>
+            <Menu text="File">
+
+                <MenuItem text="Save Diagram" onAction="#handleSave"/>
+                <MenuItem text="Upload File" onAction="#handleUpload"/>
+                <MenuItem text="Clear" onAction="#clearCanvas"/>
+                <SeparatorMenuItem/>
+            </Menu>
+        </MenuBar>
     </top>
+
+    <!-- Left Toolbar -->
+    <left>
+        <VBox spacing="5" style="-fx-padding: 50; -fx-background-color: #f0f0f0;">
+            <Button text="Class" onAction="#handleClassButtonClick" prefWidth="100" prefHeight="15"/>
+            <Button text="Association" onAction="#handleAssociationClick" prefWidth="100" prefHeight="15"/>
+            <Button text="Snap Diagram" onAction="#snapCanvas" prefWidth="100" prefHeight="15"/>
+            <Button text="Generalization" onAction="#handleGeneralizationClick" prefWidth="100" prefHeight="15"/>
+            <Button text="Interface" onAction="#interfacePressed" prefWidth="100" prefHeight="15"/>
+            <Button text="Aggregation" onAction="#handleAggregationClick" prefWidth="100" prefHeight="15"/>
+            <Button text="Composition" onAction="#handleCompositionClick" prefWidth="100" prefHeight="15"/>
+            <Button text="Code Gen" onAction="#handleCode" prefWidth="100" prefHeight="15"/>
+        </VBox>
+    </left>
 
     <center>
         <Pane fx:id="canvasPane"/>
     </center>
-
 </BorderPane>
