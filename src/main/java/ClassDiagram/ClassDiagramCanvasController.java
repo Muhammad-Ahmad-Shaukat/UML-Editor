@@ -1,7 +1,6 @@
 package ClassDiagram;
 
 import UseCaseDiagram.ClassDiagramSerializer;
-import UseCaseDiagram.UseCaseDiagramSerializer;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
@@ -31,7 +30,6 @@ import java.io.IOException;
 import java.util.*;
 import java.util.function.BiConsumer;
 
-
 public class ClassDiagramCanvasController {
 
     @FXML
@@ -52,7 +50,7 @@ public class ClassDiagramCanvasController {
     private List<CompositeRelations> compositeRelations = new ArrayList<>();
     private List<Generalization> generalizations = new ArrayList<>();
     private Map<Line,Association> associationMap = new HashMap<>();
-    private  Map<Line,CompositeRelations> compositeRelationMap = new HashMap<>();
+    private Map<Line,CompositeRelations> compositeRelationMap = new HashMap<>();
 
     @FXML
     public void initialize() {
@@ -174,8 +172,6 @@ public class ClassDiagramCanvasController {
                 return;
             }
         }
-
-
         if (selectedClassBox != null && !isWithinBounds(selectedClassBox, x, y)) {
             deselectClassBox();
         }
@@ -208,7 +204,6 @@ public class ClassDiagramCanvasController {
         }
     }
 
-
     @FXML
     private void handleGeneralizationClick(){
         activeTool = "Generalization";
@@ -236,34 +231,27 @@ public class ClassDiagramCanvasController {
             reDrawInterface(myInterface);
         }
         for (CompositeRelations r : tempAggregations) {
-            // Redraw the aggregation or composition line based on the type
             if (r.getName().equals("aggregation")) {
                 redrawAggregation(r);
             } else {
                 redrawComposition(r);
             }
-
-            // Draw the aggregation/composition text (e.g., relationship name or type) in the middle of the line
             if (r.getName() != null && !r.getName().isEmpty()) {
-                Text relationText = new Text(r.getText()); // This could be aggregation or composition
+                Text relationText = new Text(r.getText());
                 Class startClass = r.getStartClass();
                 Class endClass = r.getEndClass();
                 double midX = (startClass.getInitialPoint().getX() + endClass.getInitialPoint().getX()) / 2;
                 double midY = (startClass.getInitialPoint().getY() + endClass.getInitialPoint().getY()) / 2;
                 relationText.setX(midX);
-                relationText.setY(midY - 10); // Slightly adjust the vertical position for better visibility
+                relationText.setY(midY - 10);
                 canvasPane.getChildren().add(relationText);
             }
-
-            // Draw the multiplicity text for the start of the relation (if available)
             if (r.getStartMultiplicity() != null) {
                 Text startMultiplicityText = new Text(r.getStartMultiplicity().toString());
                 startMultiplicityText.setX(r.getStartClass().getInitialPoint().getX() - 15);
                 startMultiplicityText.setY(r.getStartClass().getInitialPoint().getY() - 5);
                 canvasPane.getChildren().add(startMultiplicityText);
             }
-
-            // Draw the multiplicity text for the end of the relation (if available)
             if (r.getEndMultiplicity() != null) {
                 Text endMultiplicityText = new Text(r.getEndMultiplicity().toString());
                 endMultiplicityText.setX(r.getEndClass().getInitialPoint().getX() + 5);
@@ -301,7 +289,6 @@ public class ClassDiagramCanvasController {
             redrawGeneralization(g);
         }
     }
-
     @FXML
     private void handleAssociationClick(){activeTool = "Association";
         deselectClassBox();}
@@ -336,7 +323,6 @@ public class ClassDiagramCanvasController {
     }
     @FXML
     private void handleAggregationClick(){activeTool = "Aggregation";}
-
     private void drawAggregation(Point initialPoint, Point finalPoint) {
         activeTool = null;
         Class startClass = getClassAtPoint(initialPoint);
@@ -382,8 +368,6 @@ public class ClassDiagramCanvasController {
         compositeRelations.add(x);
         compositeRelationMap.put(line, x);
     }
-
-
     public void drawComposition(Point initialPoint, Point finalPoint){
         activeTool = null;
         Class startClass = getClassAtPoint(initialPoint);
@@ -429,7 +413,6 @@ public class ClassDiagramCanvasController {
         compositeRelations.add(x);
         compositeRelationMap.put(line, x);
     }
-
     private void redrawAggregation(CompositeRelations aggregation) {
         activeTool = null;
         Class startClass = getClassAtPoint(aggregation.startClass.getInitialPoint());
@@ -474,8 +457,6 @@ public class ClassDiagramCanvasController {
         compositeRelations.add(aggregation);
         compositeRelationMap.put(line, aggregation);
     }
-
-
     public void redrawComposition(CompositeRelations aggregation){
         activeTool = null;
         Class startClass = getClassAtPoint(aggregation.startClass.getInitialPoint());
@@ -520,7 +501,6 @@ public class ClassDiagramCanvasController {
         compositeRelations.add(aggregation);
         compositeRelationMap.put(line, aggregation);
     }
-
     public void drawGeneralization(Point initialPoint, Point finalPoint) {
         activeTool=null;
         ClassDiagram.Class startClass = getClassAtPoint(initialPoint);
@@ -546,7 +526,6 @@ public class ClassDiagramCanvasController {
         Generalization generalization = new Generalization(startClass, endClass);
         generalizations.add(generalization);
     }
-
     private void drawClass(double x, double y) {
         activeTool = null;
         Point initialPoint = new Point(x, y);
@@ -586,7 +565,6 @@ public class ClassDiagramCanvasController {
         classes.add(myClass);
         elementMap.put(classBox, myClass);
     }
-
     public void drawInterface(Double x, Double y) {
         activeTool = null;
         Point initialPoint = new Point(x, y);
@@ -624,14 +602,12 @@ public class ClassDiagramCanvasController {
         interfaces.add(myClass);
         elementMap.put(classBox, myClass);
     }
-
     private boolean isNearLine(Line line, double x, double y) {
         Point2D start = new Point2D(line.getStartX(), line.getStartY());
         Point2D end = new Point2D(line.getEndX(), line.getEndY());
         Point2D point = new Point2D(x, y);
         return point.distance(start) + point.distance(end) - start.distance(end) < 5;
     }
-
     private void showWarning(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.WARNING);
         alert.setTitle(title);
@@ -639,7 +615,6 @@ public class ClassDiagramCanvasController {
         alert.setContentText(message);
         alert.showAndWait();
     }
-
     private ClassDiagram.Class getClassAtPoint(Point point) {
         for (Map.Entry<Node, Object> entry : elementMap.entrySet()) {
             Node node = entry.getKey();
@@ -652,7 +627,6 @@ public class ClassDiagramCanvasController {
         }
         return null;
     }
-
     private Interface getInterfaceAtPoint(Point point) {
         for (Map.Entry<Node, Object> entry : elementMap.entrySet()) {
             Node node = entry.getKey();
@@ -665,11 +639,9 @@ public class ClassDiagramCanvasController {
         }
         return null;
     }
-
     private boolean isWithinBounds(Node node, double x, double y) {
         return node.getBoundsInParent().contains(x, y);
     }
-
     public void showInterfaceDetails(Interface clazz){
         Stage detailStage = new Stage();
         VBox detailBox = new VBox(10);
@@ -710,7 +682,6 @@ public class ClassDiagramCanvasController {
         detailStage.setTitle("Edit Class: " + clazz.getClassName());
         detailStage.show();
     }
-
     private void showClassDetails(ClassDiagram.Class clazz) {
         Stage detailStage = new Stage();
         VBox detailBox = new VBox(10);
@@ -761,7 +732,6 @@ public class ClassDiagramCanvasController {
         detailStage.setTitle("Edit Class: " + clazz.getClassName());
         detailStage.show();
     }
-
     private void updateAttributesBox(ClassDiagram.Class clazz, VBox attributesBox) {
         attributesBox.getChildren().clear();
         for (Attribute attribute : clazz.getAttributes()) {
@@ -793,7 +763,6 @@ public class ClassDiagramCanvasController {
             accessModifierBox.valueProperty().addListener((obs, oldVal, newVal) -> attribute.setAccessModifier(newVal));
         }
     }
-
     private void updateFunctionsBox(ClassDiagram.Class clazz, VBox functionsBox) {
         functionsBox.getChildren().clear();
         for (Function function : clazz.getFunctions()) {
@@ -828,8 +797,6 @@ public class ClassDiagramCanvasController {
             accessModifierBox.valueProperty().addListener((obs, oldVal, newVal) -> function.setAccessModifier(newVal));
         }
     }
-
-
     private void updateFunctionsBox(ClassDiagram.Interface clazz, VBox functionsBox) {
         functionsBox.getChildren().clear();
         for (Function function : clazz.getFunctions()) {
@@ -864,7 +831,6 @@ public class ClassDiagramCanvasController {
             accessModifierBox.valueProperty().addListener((obs, oldVal, newVal) -> function.setAccessModifier(newVal));
         }
     }
-
     private void updateParametersBox(Function function, VBox parametersBox) {
         parametersBox.getChildren().clear();
         for (Attribute parameter : function.getAttributes()) {
@@ -886,7 +852,6 @@ public class ClassDiagramCanvasController {
             paramTypeField.textProperty().addListener((obs, oldText, newText) -> parameter.setDataType(newText));
         }
     }
-
     private double getMaxLabelWidth(VBox vbox) {
         double maxWidth = 0;
         for (Node node : vbox.getChildren()) {
@@ -896,7 +861,6 @@ public class ClassDiagramCanvasController {
         }
         return maxWidth + 10;
     }
-
     private void redrawAssociation(Association association) {
         Point startPoint = association.getStartClass().getInitialPoint();
         Point endPoint = association.getEndClass().getInitialPoint();
@@ -919,7 +883,6 @@ public class ClassDiagramCanvasController {
         associations.add(association);
         associationMap.put(line, association);
     }
-
     public void redrawGeneralization(Generalization generalization) {
         activeTool = null;
         ClassDiagram.Class startClass = generalization.getStartClass();
@@ -946,8 +909,6 @@ public class ClassDiagramCanvasController {
         canvasPane.getChildren().addAll(dottedLine, arrowHead);
         generalizations.add(generalization);
     }
-
-
     private void redrawClass(Class claz) {
         Point initialPoint = new Point(claz.getInitialPoint().getX(), claz.getInitialPoint().getY());
         double initialWidth = 120;
@@ -985,11 +946,9 @@ public class ClassDiagramCanvasController {
         elementMap.put(classBox, claz);
         classes.add(claz);
     }
-
     public void snapCanvas(){
         activeTool = null;
     }
-
     private void selectClassBox(VBox classBox) {
         if (selectedClassBox != null) {
             deselectClassBox();
@@ -997,14 +956,12 @@ public class ClassDiagramCanvasController {
         selectedClassBox = classBox;
         classBox.setStyle("-fx-border-color: blue; -fx-border-width: 3; -fx-padding: 5; -fx-background-color: #e0e0e0;");
     }
-
     private void deselectClassBox() {
         if (selectedClassBox != null) {
             selectedClassBox.setStyle("-fx-border-color: black; -fx-border-width: 2; -fx-padding: 5; -fx-background-color: #e0e0e0;");
             selectedClassBox = null;
         }
     }
-
     private void reDrawInterface(Interface claz) {
         Point initialPoint = new Point(claz.getInitialPoint().getX(), claz.getInitialPoint().getY());
         double initialWidth = 120;
@@ -1206,9 +1163,6 @@ public class ClassDiagramCanvasController {
             }
         }
     }
-
-
-
     @FXML
     private void clearCanvas(){
         canvasPane.getChildren().clear();
