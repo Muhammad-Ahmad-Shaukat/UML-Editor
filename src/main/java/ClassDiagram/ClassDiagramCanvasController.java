@@ -1,6 +1,5 @@
 package ClassDiagram;
 
-import UseCaseDiagram.ClassDiagramSerializer;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
@@ -52,6 +51,7 @@ public class ClassDiagramCanvasController {
     private final List<Generalization> generalizations = new ArrayList<>();
     private final Map<Line,Association> associationMap = new HashMap<>();
     private final Map<Line,CompositeRelations> compositeRelationMap = new HashMap<>();
+    private ClassDiagram.ClassDiagramSerializer ClassDiagramSerializer;
 
     @FXML
     public void initialize() {

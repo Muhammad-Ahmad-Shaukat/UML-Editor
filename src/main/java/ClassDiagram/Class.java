@@ -11,13 +11,14 @@ public class Class implements Serializable {
     ArrayList<Attribute> attributes;
     ArrayList<Function> functions;
     Point initialPoint;
-    ArrayList<Class> InheritedClasses;
+    ArrayList<AssociatedClass> x;
 
     public Class(String className, Point initialPoint) {
         this.className = className;
         this.initialPoint = initialPoint;
         attributes = new ArrayList<>();
         functions = new ArrayList<>();
+        x = new ArrayList<>();
     }
 
     public Class(Point initialPoint) {
@@ -25,6 +26,7 @@ public class Class implements Serializable {
         attributes = new ArrayList<>();
         functions = new ArrayList<>();
         className = "Class";
+        x = new ArrayList<>();
     }
 
     public Class(String className, ArrayList<Attribute> attributes, ArrayList<Function> functions, Point initialPoint) {
@@ -32,6 +34,7 @@ public class Class implements Serializable {
         this.attributes = attributes;
         this.functions = functions;
         this.initialPoint = initialPoint;
+        x = new ArrayList<>();
     }
 
     public String getClassName() {
@@ -117,5 +120,19 @@ public class Class implements Serializable {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public ArrayList<AssociatedClass> getX() {
+        return x;
+    }
+
+    public void setX(ArrayList<AssociatedClass> x) {
+        this.x = x;
+    }
+    public void addX(AssociatedClass x) {
+        this.x.add(x);
+    }
+    public void removeX(AssociatedClass x) {
+        this.x.remove(x);
     }
 }

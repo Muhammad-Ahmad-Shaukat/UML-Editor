@@ -1,10 +1,5 @@
-package UseCaseDiagram;
+package ClassDiagram;
 
-import ClassDiagram.Association;
-import ClassDiagram.Class;
-import ClassDiagram.CompositeRelations;
-import ClassDiagram.Generalization;
-import ClassDiagram.Interface;
 
 import java.io.*;
 import java.util.List;

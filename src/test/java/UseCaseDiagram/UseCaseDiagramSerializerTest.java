@@ -1,4 +1,4 @@
-package com.boota.javaproject;
+package UseCaseDiagram;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class CanvasControllerTest {
+class UseCaseDiagramSerializerTest {
 
     @BeforeEach
     void setUp() {
@@ -17,14 +17,6 @@ class CanvasControllerTest {
     }
 
     @Test
-    void initialize() {
-    }
-
-    @Test
-    void handleClassButtonClick() {
-    }
-
-    @Test
-    void handleCommentButtonClick() {
+    void serializeUseCaseDiagram() {
     }
 }
