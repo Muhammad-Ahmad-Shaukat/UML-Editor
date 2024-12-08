@@ -103,7 +103,52 @@ public class Class implements Serializable {
     public void generateCode(String filePath) {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
             // Write class declaration
-            writer.write("public class " + className + " {\n");
+            StringBuilder declaration = new StringBuilder("public class " + className);
+
+            // Check for inheritance
+            AssociatedClass parentClass = null;
+            ArrayList<Interface> implementedInterfaces = new ArrayList<>();
+
+            for (AssociatedClass assoc : x) {
+                if ("inheritance".equalsIgnoreCase(assoc.getRelation())) {
+                    parentClass = assoc;
+                } else if (assoc.getAssociatedinterface() != null) {
+                    implementedInterfaces.add(assoc.getAssociatedinterface());
+                }
+            }
+
+            // Add inheritance (extends)
+            if (parentClass != null && parentClass.getName() != null) {
+                declaration.append(" extends ").append(parentClass.getName().getClassName());
+            }
+
+            // Add interfaces (implements)
+            if (!implementedInterfaces.isEmpty()) {
+                declaration.append(" implements ");
+                for (int i = 0; i < implementedInterfaces.size(); i++) {
+                    declaration.append(implementedInterfaces.get(i).getClassName());
+                    if (i < implementedInterfaces.size() - 1) {
+                        declaration.append(", ");
+                    }
+                }
+            }
+            declaration.append(" {\n");
+            writer.write(declaration.toString());
+
+            // Add associations
+            for (AssociatedClass assoc : x) {
+                if (!"inheritance".equalsIgnoreCase(assoc.getRelation())) {
+                    String multiplicityComment = assoc.getMultiplicity() != null
+                            ? " // Multiplicity: " + assoc.getMultiplicity().toString()
+                            : "";
+                    String relationComment = assoc.getRelation() != null
+                            ? " // Relation: " + assoc.getRelation()
+                            : "";
+
+                    writer.write("    private " + assoc.getName().getClassName() + " " + assoc.getName().getClassName().toLowerCase()
+                            + ";" + multiplicityComment + relationComment + "\n");
+                }
+            }
 
             // Write attributes
             for (Attribute attribute : attributes) {
@@ -121,6 +166,7 @@ public class Class implements Serializable {
             e.printStackTrace();
         }
     }
+
 
     public ArrayList<AssociatedClass> getX() {
         return x;

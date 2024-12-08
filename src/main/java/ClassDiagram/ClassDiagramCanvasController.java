@@ -19,7 +19,6 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.Polygon;
-import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.text.Text;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
@@ -314,6 +313,10 @@ public class ClassDiagramCanvasController {
             line.setStroke(Color.BLACK);
             canvasPane.getChildren().add(line);
             Association association= new Association(startClass,endClass);
+            AssociatedClass x= new AssociatedClass(startClass,"Association");
+            AssociatedClass y= new AssociatedClass(endClass,"Association");
+            startClass.addX(x);
+            endClass.addX(y);
             associations.add(association);
             associationMap.put(line, association);
         } else {
@@ -523,6 +526,9 @@ public class ClassDiagramCanvasController {
         arrowHead.setFill(Color.BLACK);
         canvasPane.getChildren().addAll(dottedLine, arrowHead);
         Generalization generalization = new Generalization(startClass, endClass);
+        AssociatedClass x=new AssociatedClass(startClass,"inheritance");
+        AssociatedClass y=new AssociatedClass(endClass,"inheritance");
+        endClass.addX(y);
         generalizations.add(generalization);
     }
     private void drawClass(double x, double y) {

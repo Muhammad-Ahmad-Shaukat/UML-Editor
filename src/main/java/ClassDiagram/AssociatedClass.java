@@ -22,6 +22,10 @@ public class AssociatedClass {
         this.associatedinterface = associatedinterface;
     }
 
+    public AssociatedClass(Multiplicity m) {
+        this.multiplicity = m;
+    }
+
     public Class getName() {
         return name;
     }
