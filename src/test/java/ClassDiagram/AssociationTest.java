@@ -8,51 +8,101 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class AssociationTest {
 
+    private Class startClass;
+    private Class endClass;
+    private Multiplicity startMultiplicity;
+    private Multiplicity endMultiplicity;
+    private Association association;
+
     @BeforeEach
     void setUp() {
+        // Initialize test objects before each test
+        startClass = new Class("StartClass", new Point(0.0, 0.0));
+        endClass = new Class("EndClass", new Point(10.0, 10.0));
+        startMultiplicity = new Multiplicity(1.0,0.0);
+        endMultiplicity = new Multiplicity(0.0,1.0);
     }
 
     @AfterEach
     void tearDown() {
+        // Clean up after each test
+        association = null;
     }
 
     @Test
-    void getStartMultiplicity() {
+    void testConstructorWithStartAndEndClass() {
+        association = new Association(startClass, endClass);
+
+        assertEquals(startClass, association.getStartClass());
+        assertEquals(endClass, association.getEndClass());
+        assertNull(association.getStartMultiplicity());
+        assertNull(association.getEndMultiplicity());
+        assertNull(association.getText());
     }
 
     @Test
-    void setStartMultiplicity() {
+    void testConstructorWithAllFields() {
+        String text = "association text";
+        association = new Association(startMultiplicity, endMultiplicity, text, startClass, endClass);
+
+        assertEquals(startMultiplicity, association.getStartMultiplicity());
+        assertEquals(endMultiplicity, association.getEndMultiplicity());
+        assertEquals(text, association.getText());
+        assertEquals(startClass, association.getStartClass());
+        assertEquals(endClass, association.getEndClass());
     }
 
     @Test
-    void getEndMultiplicity() {
+    void testConstructorWithMultiplicityAndClasses() {
+        association = new Association(startMultiplicity, endMultiplicity, startClass, endClass);
+
+        assertEquals(startMultiplicity, association.getStartMultiplicity());
+        assertEquals(endMultiplicity, association.getEndMultiplicity());
+        assertEquals(startClass, association.getStartClass());
+        assertEquals(endClass, association.getEndClass());
+        assertNull(association.getText());
     }
 
     @Test
-    void setEndMultiplicity() {
+    void getAndSetStartMultiplicity() {
+        association = new Association(startClass, endClass);
+        association.setStartMultiplicity(startMultiplicity);
+
+        assertEquals(startMultiplicity, association.getStartMultiplicity());
     }
 
     @Test
-    void getText() {
+    void getAndSetEndMultiplicity() {
+        association = new Association(startClass, endClass);
+        association.setEndMultiplicity(endMultiplicity);
+
+        assertEquals(endMultiplicity, association.getEndMultiplicity());
     }
 
     @Test
-    void setText() {
+    void getAndSetText() {
+        String text = "association text";
+        association = new Association(startClass, endClass);
+        association.setText(text);
+
+        assertEquals(text, association.getText());
     }
 
     @Test
-    void getStartClass() {
+    void getAndSetStartClass() {
+        Class newStartClass = new Class("NewStartClass", new Point(5.0, 5.0));
+        association = new Association(startClass, endClass);
+        association.setStartClass(newStartClass);
+
+        assertEquals(newStartClass, association.getStartClass());
     }
 
     @Test
-    void setStartClass() {
-    }
+    void getAndSetEndClass() {
+        Class newEndClass = new Class("NewEndClass", new Point(15.0, 15.0));
+        association = new Association(startClass, endClass);
+        association.setEndClass(newEndClass);
 
-    @Test
-    void getEndClass() {
-    }
-
-    @Test
-    void setEndClass() {
+        assertEquals(newEndClass, association.getEndClass());
     }
 }
