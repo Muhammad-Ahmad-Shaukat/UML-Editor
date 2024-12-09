@@ -1,5 +1,7 @@
 package ClassDiagram;
 
+import com.boota.javaproject.ClassDiagram.*;
+import com.boota.javaproject.ClassDiagram.Class;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -13,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class ClassDiagramSerializerTest {
 
-    private List<Class> classes;
+    private List<com.boota.javaproject.ClassDiagram.Class> classes;
     private List<Association> associations;
     private List<Interface> interfaces;
     private List<CompositeRelations> aggregations;
@@ -30,12 +32,12 @@ class ClassDiagramSerializerTest {
         generalizations = new ArrayList<>();
 
         // Add sample data
-        classes.add(new Class(new Point(20.0,20.0)));
-        classes.add(new Class("ClassB",new Point(10.0,10.0)));
-        associations.add(new Association(new Class(new Point(0.0,0.0)), new Class(new Point(30.0,30.0))));
+        classes.add(new com.boota.javaproject.ClassDiagram.Class(new Point(20.0,20.0)));
+        classes.add(new com.boota.javaproject.ClassDiagram.Class("ClassB",new Point(10.0,10.0)));
+        associations.add(new Association(new com.boota.javaproject.ClassDiagram.Class(new Point(0.0,0.0)), new com.boota.javaproject.ClassDiagram.Class(new Point(30.0,30.0))));
         interfaces.add(new Interface(new Point(40.0,40.0)));
-        aggregations.add(new CompositeRelations( new Class(new Point(50.0,40.0)), new Class(new Point(60.0,60.0)),"Aggregation"));
-        generalizations.add(new Generalization(new Class(new Point(20.0,20.0)), new Class(new Point(70.0,70.0))));
+        aggregations.add(new CompositeRelations( new com.boota.javaproject.ClassDiagram.Class(new Point(50.0,40.0)), new com.boota.javaproject.ClassDiagram.Class(new Point(60.0,60.0)),"Aggregation"));
+        generalizations.add(new Generalization(new com.boota.javaproject.ClassDiagram.Class(new Point(20.0,20.0)), new com.boota.javaproject.ClassDiagram.Class(new Point(70.0,70.0))));
 
         // Create a temporary file for testing
         tempFile = File.createTempFile("test-diagram", ".nalla");

@@ -1,5 +1,6 @@
 package UseCaseDiagram;
 
+import com.boota.javaproject.UseCaseDiagram.DottedLineComponents;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.Polygon;
 import javafx.scene.text.Text;

@@ -1,4 +1,4 @@
-package ClassDiagram;
+package com.boota.javaproject.ClassDiagram;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
@@ -69,23 +69,23 @@ public class Class implements Serializable {
         this.initialPoint = initialPoint;
     }
 
-    void addAttribute(Attribute attribute) {
+    public void addAttribute(Attribute attribute) {
         attributes.add(attribute);
     }
 
-    void addFunction(Function function) {
+    public void addFunction(Function function) {
         functions.add(function);
     }
 
-    void removeFunction(Function function) {
+    public void removeFunction(Function function) {
         functions.remove(function);
     }
 
-    void removeAttribute(Attribute attribute) {
+    public void removeAttribute(Attribute attribute) {
         attributes.remove(attribute);
     }
 
-    String returnAttribute() {
+    public String returnAttribute() {
         StringBuilder result = new StringBuilder();
         for (Attribute attribute : attributes) {
             result.append(attribute.toString()).append("\n");
@@ -93,7 +93,7 @@ public class Class implements Serializable {
         return result.toString();
     }
 
-    String returnFunction() {
+    public String returnFunction() {
         StringBuilder result = new StringBuilder();
         for (Function function : functions) {
             result.append(function.toString()).append("\n");

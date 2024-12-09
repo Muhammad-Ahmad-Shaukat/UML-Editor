@@ -1,9 +1,9 @@
 package ClassDiagram;
-import ClassDiagram.Attribute;
-import ClassDiagram.Class;
-import ClassDiagram.Function;
-import ClassDiagram.Point;
-import ClassDiagram.AssociatedClass;
+import com.boota.javaproject.ClassDiagram.Attribute;
+import com.boota.javaproject.ClassDiagram.Class;
+import com.boota.javaproject.ClassDiagram.Function;
+import com.boota.javaproject.ClassDiagram.Point;
+import com.boota.javaproject.ClassDiagram.AssociatedClass;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

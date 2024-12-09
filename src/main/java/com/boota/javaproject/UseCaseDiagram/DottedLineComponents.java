@@ -1,4 +1,4 @@
-package UseCaseDiagram;
+package com.boota.javaproject.UseCaseDiagram;
 
 import javafx.scene.shape.Line;
 import javafx.scene.shape.Polygon;

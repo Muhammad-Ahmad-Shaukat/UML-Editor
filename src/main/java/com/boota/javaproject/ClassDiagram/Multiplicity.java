@@ -1,4 +1,4 @@
-package ClassDiagram;
+package com.boota.javaproject.ClassDiagram;
 
 import java.io.Serializable;
 

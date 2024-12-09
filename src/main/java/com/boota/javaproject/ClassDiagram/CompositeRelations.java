@@ -1,36 +1,34 @@
-package ClassDiagram;
-
+package com.boota.javaproject.ClassDiagram;
 
 import java.io.Serializable;
 
-public class Association implements Serializable {
+public class CompositeRelations implements Serializable {
 
     private Multiplicity startMultiplicity;
     private Multiplicity endMultiplicity;
     private String text;
     Class startClass;
     Class endClass;
+    String name;
 
-    public Association(Class startClass, Class endClass) {
+    //Hello
+
+    public CompositeRelations(Class startClass, Class endClass,String name) {
         this.startClass = startClass;
         this.endClass = endClass;
+        this.name = name;
     }
 
-    public Association(Multiplicity startMultiplicity, Multiplicity endMultiplicity, String text, Class startClass, Class endClass) {
+    public CompositeRelations(Multiplicity startMultiplicity, Multiplicity endMultiplicity, String text, Class startClass, Class endClass, String name) {
+        this(startClass, endClass,name);
         this.startMultiplicity = startMultiplicity;
         this.endMultiplicity = endMultiplicity;
         this.text = text;
-        this.startClass = startClass;
-        this.endClass = endClass;
     }
 
-    public Association(Multiplicity startMultiplicity, Multiplicity endMultiplicity, Class startClass, Class endClass) {
-        this.startMultiplicity = startMultiplicity;
-        this.endMultiplicity = endMultiplicity;
-        this.startClass = startClass;
-        this.endClass = endClass;
+    public String getName() {
+        return name;
     }
-
 
     public Multiplicity getStartMultiplicity() {
         return startMultiplicity;
@@ -73,4 +71,3 @@ public class Association implements Serializable {
     }
 
 }
-

@@ -1,13 +1,13 @@
-package ClassDiagram;
+package com.boota.javaproject.ClassDiagram;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 
 public class Interface implements Serializable {
-    String className;
-    ArrayList<Function> functions;
-    Point initialPoint;
-    ArrayList<Class> InheritedClasses;
+    public String className;
+    public ArrayList<Function> functions;
+    public Point initialPoint;
+    public ArrayList<Class> InheritedClasses;
 
     public Interface(String className, Point initialPoint) {
         this.className = className;
@@ -52,16 +52,16 @@ public class Interface implements Serializable {
     }
 
 
-    void addFunction(Function function) {
+    public void addFunction(Function function) {
         functions.add(function);
     }
 
-    void removeFunction(Function function) {
+    public void removeFunction(Function function) {
         functions.remove(function);
     }
 
 
-    String returnFunction() {
+    public String returnFunction() {
         StringBuilder result = new StringBuilder();
         for (Function function : functions) {
             result.append(function.toString()).append("\n");

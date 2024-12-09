@@ -1,4 +1,4 @@
-package UseCaseDiagram;
+package com.boota.javaproject.UseCaseDiagram;
 import java.io.Serializable;
 
 public class DependencyRelationship implements Serializable {

@@ -1,5 +1,7 @@
 package ClassDiagram;
 
+import com.boota.javaproject.ClassDiagram.*;
+import com.boota.javaproject.ClassDiagram.Class;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -12,7 +14,7 @@ class AssociatedClassTest {
     private AssociatedClass associatedClassWithRelation;
     private AssociatedClass associatedClassWithInterface;
 
-    private Class testClass;
+    private com.boota.javaproject.ClassDiagram.Class testClass;
     private Multiplicity testMultiplicity;
     private Interface testInterface;
 
@@ -20,7 +22,7 @@ class AssociatedClassTest {
     void setUp() {
         // Initialize test objects before each test
 
-        testClass = new Class("TestClass", new Point(0.0, 0.0));
+        testClass = new com.boota.javaproject.ClassDiagram.Class("TestClass", new Point(0.0, 0.0));
         testMultiplicity = new Multiplicity(1.0,2.0);
         testInterface = new Interface(new Point(30.0,40.0));
 
@@ -72,7 +74,7 @@ class AssociatedClassTest {
 
     @Test
     void setName() {
-        Class newClass = new Class("NewClass", new Point(1.0, 1.0));
+        com.boota.javaproject.ClassDiagram.Class newClass = new Class("NewClass", new Point(1.0, 1.0));
         associatedClassWithMultiplicity.setName(newClass);
         assertEquals(newClass, associatedClassWithMultiplicity.getName());
     }

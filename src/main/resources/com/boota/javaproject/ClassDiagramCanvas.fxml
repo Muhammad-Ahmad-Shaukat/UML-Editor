@@ -4,7 +4,7 @@
 <?import javafx.scene.layout.*?>
 
 <BorderPane xmlns:fx="http://javafx.com/fxml"
-            fx:controller="ClassDiagram.ClassDiagramCanvasController"
+            fx:controller="com.boota.javaproject.ClassDiagram.ClassDiagramCanvasController"
             stylesheets="@styles.css">
 
     <!-- Top MenuBar -->
@@ -16,6 +16,7 @@
                 <MenuItem text="Upload File" onAction="#handleUpload"/>
                 <MenuItem text="Clear" onAction="#clearCanvas"/>
                 <SeparatorMenuItem/>
+                <MenuItem text="Code Gen" onAction="#handleCode"/>
             </Menu>
         </MenuBar>
     </top>
@@ -30,7 +31,6 @@
             <Button text="Interface" onAction="#interfacePressed" prefWidth="100" prefHeight="15"/>
             <Button text="Aggregation" onAction="#handleAggregationClick" prefWidth="100" prefHeight="15"/>
             <Button text="Composition" onAction="#handleCompositionClick" prefWidth="100" prefHeight="15"/>
-            <Button text="Code Gen" onAction="#handleCode" prefWidth="100" prefHeight="15"/>
         </VBox>
     </left>
 

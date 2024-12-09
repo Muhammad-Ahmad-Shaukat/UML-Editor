@@ -1,6 +1,9 @@
 package UseCaseDiagram;
 
-import ClassDiagram.Point;
+import com.boota.javaproject.ClassDiagram.Point;
+import com.boota.javaproject.UseCaseDiagram.UseCase;
+import com.boota.javaproject.UseCaseDiagram.UseCaseActor;
+import com.boota.javaproject.UseCaseDiagram.UseCaseAssociation;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

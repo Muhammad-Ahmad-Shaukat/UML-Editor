@@ -1,5 +1,9 @@
 package ClassDiagram;
 
+import com.boota.javaproject.ClassDiagram.Association;
+import com.boota.javaproject.ClassDiagram.Class;
+import com.boota.javaproject.ClassDiagram.Multiplicity;
+import com.boota.javaproject.ClassDiagram.Point;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -8,8 +12,8 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class AssociationTest {
 
-    private Class startClass;
-    private Class endClass;
+    private com.boota.javaproject.ClassDiagram.Class startClass;
+    private com.boota.javaproject.ClassDiagram.Class endClass;
     private Multiplicity startMultiplicity;
     private Multiplicity endMultiplicity;
     private Association association;
@@ -17,8 +21,8 @@ class AssociationTest {
     @BeforeEach
     void setUp() {
         // Initialize test objects before each test
-        startClass = new Class("StartClass", new Point(0.0, 0.0));
-        endClass = new Class("EndClass", new Point(10.0, 10.0));
+        startClass = new com.boota.javaproject.ClassDiagram.Class("StartClass", new Point(0.0, 0.0));
+        endClass = new com.boota.javaproject.ClassDiagram.Class("EndClass", new Point(10.0, 10.0));
         startMultiplicity = new Multiplicity(1.0,0.0);
         endMultiplicity = new Multiplicity(0.0,1.0);
     }
@@ -90,7 +94,7 @@ class AssociationTest {
 
     @Test
     void getAndSetStartClass() {
-        Class newStartClass = new Class("NewStartClass", new Point(5.0, 5.0));
+        com.boota.javaproject.ClassDiagram.Class newStartClass = new com.boota.javaproject.ClassDiagram.Class("NewStartClass", new Point(5.0, 5.0));
         association = new Association(startClass, endClass);
         association.setStartClass(newStartClass);
 
@@ -99,7 +103,7 @@ class AssociationTest {
 
     @Test
     void getAndSetEndClass() {
-        Class newEndClass = new Class("NewEndClass", new Point(15.0, 15.0));
+        com.boota.javaproject.ClassDiagram.Class newEndClass = new Class("NewEndClass", new Point(15.0, 15.0));
         association = new Association(startClass, endClass);
         association.setEndClass(newEndClass);
 

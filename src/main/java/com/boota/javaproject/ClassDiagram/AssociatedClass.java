@@ -1,4 +1,4 @@
-package ClassDiagram;
+package com.boota.javaproject.ClassDiagram;
 
 public class AssociatedClass {
     private Class name;

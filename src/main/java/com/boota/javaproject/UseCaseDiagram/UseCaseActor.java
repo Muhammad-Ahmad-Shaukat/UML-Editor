@@ -1,6 +1,6 @@
-package UseCaseDiagram;
+package com.boota.javaproject.UseCaseDiagram;
 
-import ClassDiagram.Point;
+import com.boota.javaproject.ClassDiagram.Point;
 
 import java.io.Serializable;
 

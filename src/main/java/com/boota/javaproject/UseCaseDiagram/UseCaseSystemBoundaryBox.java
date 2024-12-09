@@ -1,9 +1,6 @@
-package UseCaseDiagram;
+package com.boota.javaproject.UseCaseDiagram;
 
-import ClassDiagram.Point;
-
-import java.io.FileWriter;
-import java.io.IOException;
+import com.boota.javaproject.ClassDiagram.Point;
 
 public class UseCaseSystemBoundaryBox {
     Point initialPoint;

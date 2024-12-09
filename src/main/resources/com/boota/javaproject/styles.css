@@ -97,14 +97,7 @@
     -fx-padding: 20px;
 }
 
-/* Styling for the HBox */
-HBox {
-    -fx-alignment: center;
-    -fx-background-color: #2a3d47;
-    -fx-padding: 15px;
-    -fx-border-radius: 10px;
-    -fx-background-radius: 10px;
-}
+
 
 /* Custom styling for the buttons */
 .custom-button {

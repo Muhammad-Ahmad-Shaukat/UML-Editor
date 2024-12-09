@@ -1,5 +1,8 @@
 package ClassDiagram;
 
+import com.boota.javaproject.ClassDiagram.Class;
+import com.boota.javaproject.ClassDiagram.Generalization;
+import com.boota.javaproject.ClassDiagram.Point;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -9,14 +12,14 @@ import static org.junit.jupiter.api.Assertions.*;
 class GeneralizationTest {
 
     private Generalization generalization;
-    private ClassDiagram.Class startClass;
-    private ClassDiagram.Class endClass;
+    private Class startClass;
+    private Class endClass;
 
     @BeforeEach
     void setUp() {
         // Create mock classes for testing purposes
-        startClass = new ClassDiagram.Class("StartClass", new Point(10.0,10.0));
-        endClass = new ClassDiagram.Class("EndClass", new Point(10.0,30.0));
+        startClass = new Class("StartClass", new Point(10.0,10.0));
+        endClass = new Class("EndClass", new Point(10.0,30.0));
 
         // Initialize the Generalization object
         generalization = new Generalization(startClass, endClass);
@@ -43,7 +46,7 @@ class GeneralizationTest {
     @Test
     void setEndClass() {
         // Change end class
-        ClassDiagram.Class newEndClass = new ClassDiagram.Class("NewEndClass", new Point(10.0,50.0));
+        Class newEndClass = new Class("NewEndClass", new Point(10.0,50.0));
         generalization.setEndClass(newEndClass);
 
         assertEquals(newEndClass, generalization.getEndClass(), "End class should be updated correctly.");
@@ -52,7 +55,7 @@ class GeneralizationTest {
     @Test
     void setStartClass() {
         // Change start class
-        ClassDiagram.Class newStartClass = new ClassDiagram.Class("NewStartClass", new Point(10.0,90.0));
+        Class newStartClass = new Class("NewStartClass", new Point(10.0,90.0));
         generalization.setStartClass(newStartClass);
 
         assertEquals(newStartClass, generalization.getStartClass(), "Start class should be updated correctly.");

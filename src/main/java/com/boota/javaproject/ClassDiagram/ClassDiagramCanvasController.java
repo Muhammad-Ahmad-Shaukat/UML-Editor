@@ -1,4 +1,4 @@
-package ClassDiagram;
+package com.boota.javaproject.ClassDiagram;
 
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
@@ -50,7 +50,7 @@ public class ClassDiagramCanvasController {
     private final List<Generalization> generalizations = new ArrayList<>();
     private final Map<Line,Association> associationMap = new HashMap<>();
     private final Map<Line,CompositeRelations> compositeRelationMap = new HashMap<>();
-    private ClassDiagram.ClassDiagramSerializer ClassDiagramSerializer;
+    private com.boota.javaproject.ClassDiagram.ClassDiagramSerializer ClassDiagramSerializer;
 
     @FXML
     public void initialize() {
@@ -177,7 +177,7 @@ public class ClassDiagramCanvasController {
             Node node = entry.getKey();
             if (isWithinBounds(node, x, y)) {
                 Object element = entry.getValue();
-                if (element instanceof ClassDiagram.Class clazz) {
+                if (element instanceof Class clazz) {
                     if (event.getClickCount() == 2) {
                         showClassDetails(clazz);
                     } else {
@@ -505,8 +505,8 @@ public class ClassDiagramCanvasController {
     }
     public void drawGeneralization(Point initialPoint, Point finalPoint) {
         activeTool=null;
-        ClassDiagram.Class startClass = getClassAtPoint(initialPoint);
-        ClassDiagram.Class endClass = getClassAtPoint(finalPoint);
+        Class startClass = getClassAtPoint(initialPoint);
+        Class endClass = getClassAtPoint(finalPoint);
         if (startClass == null || endClass == null) {
             System.out.println("Generalization must connect two valid classes.");
             return;
@@ -534,7 +534,7 @@ public class ClassDiagramCanvasController {
     private void drawClass(double x, double y) {
         activeTool = null;
         Point initialPoint = new Point(x, y);
-        ClassDiagram.Class myClass = new ClassDiagram.Class(initialPoint);
+        Class myClass = new Class(initialPoint);
         double initialWidth = 120;
         VBox classBox = new VBox();
         classBox.setLayoutX(x);
@@ -620,13 +620,13 @@ public class ClassDiagramCanvasController {
         alert.setContentText(message);
         alert.showAndWait();
     }
-    private ClassDiagram.Class getClassAtPoint(Point point) {
+    private Class getClassAtPoint(Point point) {
         for (Map.Entry<Node, Object> entry : elementMap.entrySet()) {
             Node node = entry.getKey();
             if (node instanceof VBox && isWithinBounds(node, point.getX(), point.getY())) {
                 Object element = entry.getValue();
-                if (element instanceof ClassDiagram.Class) {
-                    return (ClassDiagram.Class) element;
+                if (element instanceof Class) {
+                    return (Class) element;
                 }
             }
         }
@@ -687,7 +687,7 @@ public class ClassDiagramCanvasController {
         detailStage.setTitle("Edit Class: " + clazz.getClassName());
         detailStage.show();
     }
-    private void showClassDetails(ClassDiagram.Class clazz) {
+    private void showClassDetails(Class clazz) {
         Stage detailStage = new Stage();
         VBox detailBox = new VBox(10);
         detailBox.setPadding(new Insets(10));
@@ -737,14 +737,14 @@ public class ClassDiagramCanvasController {
         detailStage.setTitle("Edit Class: " + clazz.getClassName());
         detailStage.show();
     }
-    private void updateAttributesBox(ClassDiagram.Class clazz, VBox attributesBox) {
+    private void updateAttributesBox(Class clazz, VBox attributesBox) {
         attributesBox.getChildren().clear();
         for (Attribute attribute : clazz.getAttributes()) {
             HBox attrBox = new HBox(5);
             TextField nameField = new TextField(attribute.getName());
             ComboBox<String> DataTypeBox = new ComboBox<>();
             DataTypeBox.getItems().addAll("String","Int","Double","Float","Boolean");
-            for (ClassDiagram.Class cl : classes)
+            for (Class cl : classes)
             {
                 DataTypeBox.getItems().add(cl.getClassName());
             }
@@ -768,7 +768,7 @@ public class ClassDiagramCanvasController {
             accessModifierBox.valueProperty().addListener((obs, oldVal, newVal) -> attribute.setAccessModifier(newVal));
         }
     }
-    private void updateFunctionsBox(ClassDiagram.Class clazz, VBox functionsBox) {
+    private void updateFunctionsBox(Class clazz, VBox functionsBox) {
         functionsBox.getChildren().clear();
         for (Function function : clazz.getFunctions()) {
             VBox funcBox = new VBox(5);
@@ -802,7 +802,7 @@ public class ClassDiagramCanvasController {
             accessModifierBox.valueProperty().addListener((obs, oldVal, newVal) -> function.setAccessModifier(newVal));
         }
     }
-    private void updateFunctionsBox(ClassDiagram.Interface clazz, VBox functionsBox) {
+    private void updateFunctionsBox(Interface clazz, VBox functionsBox) {
         functionsBox.getChildren().clear();
         for (Function function : clazz.getFunctions()) {
             VBox funcBox = new VBox(5);
@@ -890,8 +890,8 @@ public class ClassDiagramCanvasController {
     }
     public void redrawGeneralization(Generalization generalization) {
         activeTool = null;
-        ClassDiagram.Class startClass = generalization.getStartClass();
-        ClassDiagram.Class endClass = generalization.getEndClass();
+        Class startClass = generalization.getStartClass();
+        Class endClass = generalization.getEndClass();
         if (startClass == null || endClass == null) {
             System.out.println("Cannot redraw generalization: One or both classes are null.");
             return;
