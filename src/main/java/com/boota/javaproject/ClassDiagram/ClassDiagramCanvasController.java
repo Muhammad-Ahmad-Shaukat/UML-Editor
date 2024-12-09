@@ -1,8 +1,14 @@
 package com.boota.javaproject.ClassDiagram;
 
+import com.boota.javaproject.SnapshotHelper;
+import javafx.embed.swing.SwingFXUtils;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
+import javax.imageio.ImageIO;
+import javafx.embed.swing.SwingFXUtils;
+import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
@@ -12,6 +18,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
+import javafx.scene.image.WritableImage;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
@@ -24,6 +31,8 @@ import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
@@ -54,17 +63,41 @@ public class ClassDiagramCanvasController {
 
     @FXML
     public void initialize() {
-        canvas = new Canvas(canvasPane.getWidth(), canvasPane.getHeight());
-        gc = canvas.getGraphicsContext2D();
-        canvasPane.getChildren().add(canvas);
-        drawActions.put("Class", this::drawClass);
-        drawActions.put("Interface", this::drawInterface);
-        canvasPane.setOnMouseMoved(this::trackMouseCoordinates);
-        canvasPane.setOnMouseClicked(this::handleCanvasClick);
-        canvasPane.setOnMousePressed(this::handleMousePressed);
-        canvasPane.setOnMouseDragged(this::handleMouseDragged);
-        canvasPane.setOnMouseReleased(this::handleMouseReleased);
+        // Bind canvas width and height to canvasPane's width and height properties
+        canvasPane.widthProperty().addListener((observable, oldValue, newValue) -> {
+            if (canvas == null) {
+                canvas = new Canvas(newValue.doubleValue(), canvasPane.getHeight());
+                gc = canvas.getGraphicsContext2D();
+                canvasPane.getChildren().add(canvas);
+
+                // Other initialization code
+                drawActions.put("Class", this::drawClass);
+                drawActions.put("Interface", this::drawInterface);
+                canvasPane.setOnMouseMoved(this::trackMouseCoordinates);
+                canvasPane.setOnMouseClicked(this::handleCanvasClick);
+                canvasPane.setOnMousePressed(this::handleMousePressed);
+                canvasPane.setOnMouseDragged(this::handleMouseDragged);
+                canvasPane.setOnMouseReleased(this::handleMouseReleased);
+            } else {
+                // Update canvas width if pane width changes
+                canvas.setWidth(newValue.doubleValue());
+            }
+        });
+
+        // Bind canvas height to canvasPane's height property
+        canvasPane.heightProperty().addListener((observable, oldValue, newValue) -> {
+            if (canvas == null) {
+                canvas = new Canvas(canvasPane.getWidth(), newValue.doubleValue());
+                gc = canvas.getGraphicsContext2D();
+                canvasPane.getChildren().add(canvas);
+            } else {
+                // Update canvas height if pane height changes
+                canvas.setHeight(newValue.doubleValue());
+            }
+        });
     }
+
+
 
     public void interfacePressed(){
         activeTool = "Interface";
@@ -951,9 +984,57 @@ public class ClassDiagramCanvasController {
         elementMap.put(classBox, claz);
         classes.add(claz);
     }
-    public void snapCanvas(){
+
+
+    @FXML
+    public void handleSnapshot() {
         activeTool = null;
+
+        // Call the static method from SnapshotHelper
+        SnapshotHelper.handleSnapshot(
+                canvasPane,               // Pass canvasPane
+                canvas,                   // Pass canvas
+                this::showWarning,        // Pass the showWarning method reference
+                writableImage -> {
+                    try {
+                        saveImage(writableImage);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                }           // Pass the saveImage method reference
+        );
     }
+
+    private void showWarning(String message) {
+        Alert alert = new Alert(Alert.AlertType.WARNING);
+        alert.setTitle("Warning");
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
+
+
+    private void saveImage(WritableImage writableImage) throws IOException {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Save Canvas Snapshot");
+        fileChooser.setInitialFileName("canvas_snapshot.png");
+        fileChooser.getExtensionFilters().add(
+                new FileChooser.ExtensionFilter("PNG Files", "*.png")
+        );
+        File file = fileChooser.showSaveDialog(null);
+        if (file != null) {
+            ImageIO.write(SwingFXUtils.fromFXImage(writableImage, null), "png", file);
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Save Canvas Snapshot");
+            alert.setHeaderText("Image Saved");
+            alert.showAndWait();
+        } else {
+            showWarning("Save Cancelled", "No file was selected.");
+        }
+    }
+
+
+
     private void selectClassBox(VBox classBox) {
         if (selectedClassBox != null) {
             deselectClassBox();

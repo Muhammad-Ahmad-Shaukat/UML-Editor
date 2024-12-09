@@ -15,6 +15,7 @@
                 <MenuItem text="Save Diagram" onAction="#handleSave"/>
                 <MenuItem text="Upload File" onAction="#handleUpload"/>
                 <MenuItem text="Clear" onAction="#clearCanvas"/>
+                <MenuItem text="Picture" onAction="#handleSnapshot"/>
                 <SeparatorMenuItem/>
                 <MenuItem text="Code Gen" onAction="#handleCode"/>
             </Menu>
@@ -26,7 +27,6 @@
         <VBox spacing="5" style="-fx-padding: 50; -fx-background-color: #f0f0f0;">
             <Button text="Class" onAction="#handleClassButtonClick" prefWidth="100" prefHeight="15"/>
             <Button text="Association" onAction="#handleAssociationClick" prefWidth="100" prefHeight="15"/>
-            <Button text="Snap Diagram" onAction="#snapCanvas" prefWidth="100" prefHeight="15"/>
             <Button text="Generalization" onAction="#handleGeneralizationClick" prefWidth="100" prefHeight="15"/>
             <Button text="Interface" onAction="#interfacePressed" prefWidth="100" prefHeight="15"/>
             <Button text="Aggregation" onAction="#handleAggregationClick" prefWidth="100" prefHeight="15"/>
@@ -35,6 +35,9 @@
     </left>
 
     <center>
-        <Pane fx:id="canvasPane"/>
+        <Pane fx:id="canvasPane" prefWidth="800" prefHeight="600">
+            <!-- Canvas will be created dynamically within this Pane -->
+        </Pane>
+
     </center>
 </BorderPane>

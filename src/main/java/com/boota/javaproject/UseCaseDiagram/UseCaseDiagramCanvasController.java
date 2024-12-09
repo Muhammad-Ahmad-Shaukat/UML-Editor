@@ -927,7 +927,7 @@ public class UseCaseDiagramCanvasController {
             }
             try {
                 UseCaseDiagramSerializer.serializeUseCaseDiagram(
-                        useCases, actors, associations, includeRelations, excludeRelations, file.getAbsolutePath()
+                        useCases, actors, associations, includeRelations, excludeRelations, boundaryBoxes,file.getAbsolutePath()
                 );
             } catch (IOException e) {
                 e.printStackTrace();

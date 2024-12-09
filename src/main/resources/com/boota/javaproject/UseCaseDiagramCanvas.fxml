@@ -14,6 +14,7 @@
 
                 <MenuItem text="Save Diagram" onAction="#handleSave"/>
                 <MenuItem text="Upload File" onAction="#handleUpload"/>
+                <MenuItem text="Pivture Canvas" onAction="#handleSnapshot"/>
                 <SeparatorMenuItem/>
 
             </Menu>

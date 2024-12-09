@@ -1,16 +1,14 @@
 package com.boota.javaproject.UseCaseDiagram;
-
 import java.io.*;
 import java.util.List;
-
 public class UseCaseDiagramSerializer {
-
     public static void serializeUseCaseDiagram(
             List<UseCase> useCases,
             List<UseCaseActor> actors,
             List<UseCaseAssociation> associations,
             List<DependencyRelationship> includeRelations,
             List<DependencyRelationship> excludeRelations,
+            List<UseCaseSystemBoundaryBox> boxes,
             String filePath
     ) throws IOException {
         try (FileOutputStream fs = new FileOutputStream(filePath);
@@ -33,4 +31,3 @@ public class UseCaseDiagramSerializer {
         }
     }
 }
-
