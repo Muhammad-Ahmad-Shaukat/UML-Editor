@@ -3,7 +3,11 @@ package com.boota.javaproject.ClassDiagram;
 
 import java.io.*;
 import java.util.List;
-
+/**
+ * Provides functionality for serializing and deserializing class diagram components.
+ * This class can serialize and deserialize components such as classes, associations,
+ * interfaces, aggregations, and generalizations to and from files.
+ */
 public class ClassDiagramSerializer {
 
     /**
